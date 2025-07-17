@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Shield } from "lucide-react";
+import AnimatedDonutChart from "@/components/charts/animated-donut-chart";
+import AnimatedProgressRing from "@/components/charts/animated-progress-ring";
 
 export default function InventoryHealth() {
   const { data: health, isLoading } = useQuery({
@@ -32,46 +34,51 @@ export default function InventoryHealth() {
 
   const overallHealthScore = Math.round(healthyPercentage);
 
+  const donutData = [
+    {
+      label: "Healthy Stock",
+      value: health?.healthy || 0,
+      color: "#10b981",
+      percentage: healthyPercentage
+    },
+    {
+      label: "Low Stock",
+      value: health?.lowStock || 0,
+      color: "#f59e0b",
+      percentage: lowStockPercentage
+    },
+    {
+      label: "Critical/Out",
+      value: health?.outOfStock || 0,
+      color: "#ef4444",
+      percentage: outOfStockPercentage
+    }
+  ];
+
   return (
-    <Card className="transition-shadow hover:shadow-md">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Shield className="mr-2 h-5 w-5 text-primary" />
-          Inventory Health
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Healthy Stock</span>
-            <span className="text-sm font-semibold text-green-600">{health?.healthy || 0} items</span>
-          </div>
-          <Progress value={healthyPercentage} className="h-2" />
-          
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Low Stock</span>
-            <span className="text-sm font-semibold text-orange-600">{health?.lowStock || 0} items</span>
-          </div>
-          <Progress value={lowStockPercentage} className="h-2" />
-          
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Critical/Out</span>
-            <span className="text-sm font-semibold text-red-600">{health?.outOfStock || 0} items</span>
-          </div>
-          <Progress value={outOfStockPercentage} className="h-2" />
-        </div>
-        
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <h4 className="font-medium text-blue-900">Health Score</h4>
-          <div className="text-3xl font-bold text-blue-900 mt-2">{overallHealthScore}%</div>
-          <p className="text-sm text-blue-700 mt-1">
-            {overallHealthScore >= 80 ? "Excellent" : 
-             overallHealthScore >= 60 ? "Good" : 
-             overallHealthScore >= 40 ? "Fair" : "Poor"} - 
-            {overallHealthScore >= 60 ? " Above average performance" : " Needs attention"}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <AnimatedDonutChart
+        title="Inventory Health"
+        data={donutData}
+        centerValue={totalItems}
+        centerLabel="Total Items"
+        animationDelay={400}
+        size="md"
+      />
+      
+      <AnimatedProgressRing
+        title="Health Score"
+        value={overallHealthScore}
+        maxValue={100}
+        label={overallHealthScore >= 80 ? "Excellent" : 
+               overallHealthScore >= 60 ? "Good" : 
+               overallHealthScore >= 40 ? "Fair" : "Poor"}
+        color={overallHealthScore >= 80 ? "#10b981" : 
+               overallHealthScore >= 60 ? "#3b82f6" : 
+               overallHealthScore >= 40 ? "#f59e0b" : "#ef4444"}
+        animationDelay={800}
+        icon={<Shield className="h-4 w-4" />}
+      />
+    </div>
   );
 }
