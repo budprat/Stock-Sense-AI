@@ -221,6 +221,19 @@ export const wasteRecords = pgTable("waste_records", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Feedback table
+export const feedback = pgTable("feedback", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  type: text("type").notNull(), // 'positive', 'negative', 'bug', 'suggestion'
+  message: text("message").notNull(),
+  page: text("page").notNull(),
+  rating: integer("rating"),
+  status: text("status").default("open"), // 'open', 'in-progress', 'resolved'
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   organization: one(organizations, { fields: [users.organizationId], references: [organizations.id] }),
@@ -327,6 +340,10 @@ export const wasteRecordsRelations = relations(wasteRecords, ({ one }) => ({
   user: one(users, { fields: [wasteRecords.userId], references: [users.id] }),
 }));
 
+export const feedbackRelations = relations(feedback, ({ one }) => ({
+  user: one(users, { fields: [feedback.userId], references: [users.id] }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -382,6 +399,12 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
   createdAt: true,
 });
 
+export const insertFeedbackSchema = createInsertSchema(feedback).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -399,6 +422,8 @@ export type WasteRecord = typeof wasteRecords.$inferSelect;
 export type InsertWasteRecord = z.infer<typeof insertWasteRecordSchema>;
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
+export type Feedback = typeof feedback.$inferSelect;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 
 // Extended types for API responses
 export type InventoryWithProduct = Inventory & {

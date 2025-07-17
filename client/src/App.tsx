@@ -15,34 +15,51 @@ import Reports from "@/pages/reports";
 import Locations from "@/pages/locations";
 import Users from "@/pages/users";
 import NotFound from "@/pages/not-found";
+import OnboardingTutorial from "@/components/onboarding/onboarding-tutorial";
+import FeedbackWidget from "@/components/feedback/feedback-widget";
+import { useOnboarding } from "@/hooks/use-onboarding";
 
 function Router() {
   const { isAuthenticated, isFirstTime } = useAuth();
+  const { showOnboarding, completeOnboarding, skipOnboarding } = useOnboarding();
 
   return (
-    <Switch>
-      <Route path="/">
-        {() => {
-          if (!isAuthenticated) {
-            return <Landing />;
-          }
-          if (isFirstTime) {
-            return <Onboarding />;
-          }
-          return <Dashboard />;
-        }}
-      </Route>
-      <Route path="/dashboard" component={Dashboard} />
-      <Route path="/inventory" component={Inventory} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/suppliers" component={Suppliers} />
-      <Route path="/settings" component={Settings} />
-      <Route path="/reports" component={Reports} />
-      <Route path="/locations" component={Locations} />
-      <Route path="/users" component={Users} />
-      <Route path="/onboarding" component={Onboarding} />
-      <Route component={NotFound} />
-    </Switch>
+    <>
+      <Switch>
+        <Route path="/">
+          {() => {
+            if (!isAuthenticated) {
+              return <Landing />;
+            }
+            if (isFirstTime) {
+              return <Onboarding />;
+            }
+            return <Dashboard />;
+          }}
+        </Route>
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/inventory" component={Inventory} />
+        <Route path="/analytics" component={Analytics} />
+        <Route path="/suppliers" component={Suppliers} />
+        <Route path="/settings" component={Settings} />
+        <Route path="/reports" component={Reports} />
+        <Route path="/locations" component={Locations} />
+        <Route path="/users" component={Users} />
+        <Route path="/onboarding" component={Onboarding} />
+        <Route component={NotFound} />
+      </Switch>
+      
+      {/* Onboarding Tutorial */}
+      {showOnboarding && isAuthenticated && (
+        <OnboardingTutorial 
+          onComplete={completeOnboarding}
+          onSkip={skipOnboarding}
+        />
+      )}
+      
+      {/* Feedback Widget */}
+      {isAuthenticated && <FeedbackWidget />}
+    </>
   );
 }
 

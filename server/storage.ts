@@ -8,6 +8,7 @@ import {
   wasteRecords,
   categories,
   purchaseOrders,
+  feedback,
   type User,
   type InsertUser,
   type Product,
@@ -24,6 +25,8 @@ import {
   type InsertWasteRecord,
   type Category,
   type InsertCategory,
+  type Feedback,
+  type InsertFeedback,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, asc } from "drizzle-orm";
@@ -83,6 +86,10 @@ export interface IStorage {
   // Category operations
   getCategories(): Promise<Category[]>;
   createCategory(category: InsertCategory): Promise<Category>;
+
+  // Feedback operations
+  createFeedback(feedback: InsertFeedback): Promise<Feedback>;
+  getFeedback(userId: number): Promise<Feedback[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -402,6 +409,19 @@ export class DatabaseStorage implements IStorage {
   async createCategory(category: InsertCategory): Promise<Category> {
     const [newCategory] = await db.insert(categories).values(category).returning();
     return newCategory;
+  }
+
+  async createFeedback(feedbackData: InsertFeedback): Promise<Feedback> {
+    const [newFeedback] = await db.insert(feedback).values(feedbackData).returning();
+    return newFeedback;
+  }
+
+  async getFeedback(userId: number): Promise<Feedback[]> {
+    return await db
+      .select()
+      .from(feedback)
+      .where(eq(feedback.userId, userId))
+      .orderBy(desc(feedback.createdAt));
   }
 }
 

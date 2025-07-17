@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertProductSchema, insertInventorySchema, insertSupplierSchema, insertAiRecommendationSchema, insertWasteRecordSchema } from "@shared/schema";
+import { insertProductSchema, insertInventorySchema, insertSupplierSchema, insertAiRecommendationSchema, insertWasteRecordSchema, insertFeedbackSchema } from "@shared/schema";
 import { z } from "zod";
 import { aiAssistant } from "./ai-assistant";
 
@@ -435,6 +435,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error optimizing reorder quantities:", error);
       res.status(500).json({ message: "Failed to optimize quantities" });
+    }
+  });
+
+  // Feedback endpoint
+  app.post("/api/feedback", async (req, res) => {
+    try {
+      const validatedData = insertFeedbackSchema.parse({
+        ...req.body,
+        userId: MOCK_USER_ID,
+      });
+      
+      const feedback = await storage.createFeedback(validatedData);
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error creating feedback:", error);
+      res.status(500).json({ error: "Failed to create feedback" });
+    }
+  });
+
+  // Get user feedback
+  app.get("/api/feedback", async (req, res) => {
+    try {
+      const feedback = await storage.getFeedback(MOCK_USER_ID);
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error fetching feedback:", error);
+      res.status(500).json({ error: "Failed to fetch feedback" });
     }
   });
 

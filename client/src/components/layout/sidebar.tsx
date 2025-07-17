@@ -43,6 +43,7 @@ export default function Sidebar() {
                     isActive && "bg-primary text-primary-foreground"
                   )}
                   asChild
+                  data-tour={item.name.toLowerCase()}
                 >
                   <Link href={item.href}>
                     <Icon className="mr-3 h-5 w-5" />

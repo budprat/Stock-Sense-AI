@@ -9,13 +9,17 @@ import { Separator } from "@/components/ui/separator";
 import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
-import { Settings as SettingsIcon, User, Bell, Shield, Database, HelpCircle } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Database, HelpCircle, Play } from "lucide-react";
+import { useOnboarding } from "@/hooks/use-onboarding";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
   const [notifications, setNotifications] = useState(true);
   const [lowStockAlerts, setLowStockAlerts] = useState(true);
   const [expirationAlerts, setExpirationAlerts] = useState(true);
   const [aiRecommendations, setAiRecommendations] = useState(true);
+  const { restartOnboarding } = useOnboarding();
+  const { toast } = useToast();
 
   return (
     <div className="min-h-screen bg-background">
@@ -238,11 +242,21 @@ export default function Settings() {
                   <Button variant="outline">
                     Contact Support
                   </Button>
-                  <Button variant="outline">
-                    Report a Bug
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      restartOnboarding();
+                      toast({
+                        title: "Tutorial Restarted",
+                        description: "The onboarding tutorial has been restarted. Follow the highlighted steps to learn about StockSense.",
+                      });
+                    }}
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Restart Tutorial
                   </Button>
                   <Button variant="outline">
-                    Feature Request
+                    Report a Bug
                   </Button>
                 </div>
                 <div className="text-sm text-muted-foreground">
