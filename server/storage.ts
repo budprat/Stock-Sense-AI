@@ -128,7 +128,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .delete(products)
       .where(and(eq(products.id, id), eq(products.userId, userId)));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async getInventory(userId: number): Promise<InventoryWithProduct[]> {
@@ -161,7 +161,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: products.updatedAt,
           category: {
             id: categories.id,
-            name: categories.name,
+            name: categories.name ?? "",
             description: categories.description,
             userId: categories.userId,
             createdAt: categories.createdAt,
@@ -207,7 +207,7 @@ export class DatabaseStorage implements IStorage {
           updatedAt: products.updatedAt,
           category: {
             id: categories.id,
-            name: categories.name,
+            name: categories.name ?? "",
             description: categories.description,
             userId: categories.userId,
             createdAt: categories.createdAt,
