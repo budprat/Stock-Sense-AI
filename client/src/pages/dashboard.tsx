@@ -1,0 +1,78 @@
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import Header from "@/components/layout/header";
+import Sidebar from "@/components/layout/sidebar";
+import MobileNav from "@/components/layout/mobile-nav";
+import CriticalAlerts from "@/components/dashboard/critical-alerts";
+import QuickStats from "@/components/dashboard/quick-stats";
+import AIRecommendations from "@/components/dashboard/ai-recommendations";
+import InventoryHealth from "@/components/dashboard/inventory-health";
+import DemandForecast from "@/components/dashboard/demand-forecast";
+import WasteAnalysis from "@/components/dashboard/waste-analysis";
+import InventoryTable from "@/components/dashboard/inventory-table";
+import SupplierPerformance from "@/components/dashboard/supplier-performance";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+
+export default function Dashboard() {
+  // Initialize demo data on first load
+  useEffect(() => {
+    const initDemo = async () => {
+      try {
+        await apiRequest("POST", "/api/init-demo");
+      } catch (error) {
+        console.log("Demo data might already exist");
+      }
+    };
+    initDemo();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <MobileNav />
+      <Sidebar />
+      
+      <main className="md:pl-64 pt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <CriticalAlerts />
+          
+          <QuickStats />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <AIRecommendations />
+            </div>
+            <div className="lg:col-span-1">
+              <InventoryHealth />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <DemandForecast />
+            <WasteAnalysis />
+          </div>
+          
+          <div className="mt-6">
+            <InventoryTable />
+          </div>
+          
+          <div className="mt-6">
+            <SupplierPerformance />
+          </div>
+        </div>
+      </main>
+      
+      {/* Floating Action Button */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <Button
+          size="lg"
+          className="rounded-full w-14 h-14 p-0 shadow-lg hover:shadow-xl transition-shadow"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      </div>
+    </div>
+  );
+}
