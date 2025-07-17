@@ -250,6 +250,12 @@ export const insertWasteRecordSchema = createInsertSchema(wasteRecords).omit({
   createdAt: true,
 });
 
+export const insertCategorySchema = createInsertSchema(categories).omit({
+  id: true,
+  userId: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -265,6 +271,8 @@ export type AIRecommendation = typeof aiRecommendations.$inferSelect;
 export type InsertAIRecommendation = z.infer<typeof insertAiRecommendationSchema>;
 export type WasteRecord = typeof wasteRecords.$inferSelect;
 export type InsertWasteRecord = z.infer<typeof insertWasteRecordSchema>;
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
 // Extended types for API responses
 export type InventoryWithProduct = Inventory & {

@@ -280,6 +280,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POS Integration routes
+  app.get('/api/pos/sync-stats', async (req, res) => {
+    try {
+      const stats = {
+        totalTransactions: 2106,
+        itemsSynced: 147,
+        lastSyncMinutes: 2,
+        connectedSystems: 2,
+      };
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching POS sync stats:", error);
+      res.status(500).json({ message: "Failed to fetch sync stats" });
+    }
+  });
+
+  app.post('/api/pos/:posId/sync', async (req, res) => {
+    try {
+      const { posId } = req.params;
+      
+      // Simulate POS sync with realistic data
+      const syncResults = {
+        square: { itemsUpdated: 23, newItems: 3, updatedPrices: 8 },
+        shopify: { itemsUpdated: 15, newItems: 2, updatedPrices: 5 },
+        toast: { itemsUpdated: 31, newItems: 5, updatedPrices: 12 },
+        lightspeed: { itemsUpdated: 19, newItems: 1, updatedPrices: 7 },
+      };
+      
+      const result = syncResults[posId as keyof typeof syncResults] || { itemsUpdated: 0, newItems: 0, updatedPrices: 0 };
+      
+      // Simulate sync delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error syncing POS:", error);
+      res.status(500).json({ message: "Failed to sync POS system" });
+    }
+  });
+
+  app.post('/api/pos/:posId/connect', async (req, res) => {
+    try {
+      const { posId } = req.params;
+      const { apiKey, storeId, environment } = req.body;
+      
+      // Simulate connection validation
+      if (!apiKey || !storeId) {
+        return res.status(400).json({ message: "API key and store ID are required" });
+      }
+      
+      // Simulate connection delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      res.json({ 
+        success: true, 
+        message: `Successfully connected to ${posId}`,
+        connectionId: `conn_${posId}_${Date.now()}`
+      });
+    } catch (error) {
+      console.error("Error connecting POS:", error);
+      res.status(500).json({ message: "Failed to connect POS system" });
+    }
+  });
+
+  // Category routes for the product form
+  app.get('/api/categories', async (req, res) => {
+    try {
+      const categories = await storage.getCategories();
+      
+      // If no categories exist, create some default ones
+      if (categories.length === 0) {
+        const defaultCategories = [
+          { name: "Produce", description: "Fresh fruits and vegetables" },
+          { name: "Dairy", description: "Milk, cheese, and dairy products" },
+          { name: "Meat", description: "Fresh meat and seafood" },
+          { name: "Pantry", description: "Dry goods and shelf-stable items" },
+          { name: "Beverages", description: "Drinks and liquid refreshments" },
+          { name: "Frozen", description: "Frozen foods and ice cream" },
+        ];
+        
+        for (const cat of defaultCategories) {
+          await storage.createCategory(cat);
+        }
+        
+        const newCategories = await storage.getCategories();
+        res.json(newCategories);
+      } else {
+        res.json(categories);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      res.status(500).json({ message: "Failed to fetch categories" });
+    }
+  });
+
+  app.post('/api/categories', async (req, res) => {
+    try {
+      const { name, description } = req.body;
+      if (!name) {
+        return res.status(400).json({ message: "Category name is required" });
+      }
+      
+      const category = await storage.createCategory({ name, description });
+      res.json(category);
+    } catch (error) {
+      console.error("Error creating category:", error);
+      res.status(500).json({ message: "Failed to create category" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

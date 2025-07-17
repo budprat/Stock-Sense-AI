@@ -5,10 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
-import { Package, Search, Plus, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import AddProductForm from "@/components/forms/add-product-form";
+import POSIntegration from "@/components/pos/pos-integration";
+import { Package, Search, Plus, AlertTriangle, CheckCircle, Clock, Settings, Zap } from "lucide-react";
 
 export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,52 +61,68 @@ export default function Inventory() {
                 Track and manage your inventory levels in real-time
               </p>
             </div>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Product
-            </Button>
+            <div className="flex gap-2">
+              <AddProductForm />
+              <Button variant="outline" size="sm">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </Button>
+            </div>
           </div>
 
-          {/* Filters */}
-          <Card className="mb-6">
-            <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search products..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9"
-                    />
+          <Tabs defaultValue="inventory" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="inventory" className="flex items-center">
+                <Package className="w-4 h-4 mr-2" />
+                Inventory
+              </TabsTrigger>
+              <TabsTrigger value="pos" className="flex items-center">
+                <Zap className="w-4 h-4 mr-2" />
+                POS Integration
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="inventory" className="space-y-6">
+              {/* Filters */}
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex flex-col md:flex-row gap-4">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search products..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Statuses</SelectItem>
+                        <SelectItem value="low">Low Stock</SelectItem>
+                        <SelectItem value="out">Out of Stock</SelectItem>
+                        <SelectItem value="in">In Stock</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Filter by category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="low">Low Stock</SelectItem>
-                    <SelectItem value="out">Out of Stock</SelectItem>
-                    <SelectItem value="in">In Stock</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
           {/* Inventory Grid */}
           {isLoading ? (
@@ -185,23 +204,33 @@ export default function Inventory() {
             </div>
           )}
 
-          {filteredInventory.length === 0 && !isLoading && (
-            <Card className="text-center py-12">
-              <CardContent>
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No inventory items found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm || categoryFilter !== "all" || statusFilter !== "all" 
-                    ? "Try adjusting your filters or search terms."
-                    : "Get started by adding your first product."}
-                </p>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Product
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+              {filteredInventory.length === 0 && !isLoading && (
+                <Card className="text-center py-12">
+                  <CardContent>
+                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No inventory items found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {searchTerm || categoryFilter !== "all" || statusFilter !== "all" 
+                        ? "Try adjusting your filters or search terms."
+                        : "Get started by adding your first product."}
+                    </p>
+                    <AddProductForm 
+                      trigger={
+                        <Button>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Product
+                        </Button>
+                      }
+                    />
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="pos" className="space-y-6">
+              <POSIntegration />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
     </div>

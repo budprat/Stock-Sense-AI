@@ -22,6 +22,8 @@ import {
   type AIRecommendationWithProduct,
   type WasteRecord,
   type InsertWasteRecord,
+  type Category,
+  type InsertCategory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, asc } from "drizzle-orm";
@@ -76,6 +78,10 @@ export interface IStorage {
 
   // Demand forecast
   getDemandForecast(userId: number, productId?: number): Promise<any[]>;
+  
+  // Category operations
+  getCategories(): Promise<Category[]>;
+  createCategory(category: InsertCategory): Promise<Category>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -133,93 +139,39 @@ export class DatabaseStorage implements IStorage {
 
   async getInventory(userId: number): Promise<InventoryWithProduct[]> {
     const result = await db
-      .select({
-        id: inventory.id,
-        productId: inventory.productId,
-        userId: inventory.userId,
-        currentStock: inventory.currentStock,
-        reorderPoint: inventory.reorderPoint,
-        maxStock: inventory.maxStock,
-        lastRestocked: inventory.lastRestocked,
-        expirationDate: inventory.expirationDate,
-        location: inventory.location,
-        updatedAt: inventory.updatedAt,
-        product: {
-          id: products.id,
-          name: products.name,
-          description: products.description,
-          sku: products.sku,
-          categoryId: products.categoryId,
-          userId: products.userId,
-          unit: products.unit,
-          costPrice: products.costPrice,
-          sellingPrice: products.sellingPrice,
-          imageUrl: products.imageUrl,
-          isPerishable: products.isPerishable,
-          shelfLifeDays: products.shelfLifeDays,
-          createdAt: products.createdAt,
-          updatedAt: products.updatedAt,
-          category: {
-            id: categories.id,
-            name: categories.name ?? "",
-            description: categories.description,
-            userId: categories.userId,
-            createdAt: categories.createdAt,
-          },
-        },
-      })
+      .select()
       .from(inventory)
       .leftJoin(products, eq(inventory.productId, products.id))
       .leftJoin(categories, eq(products.categoryId, categories.id))
       .where(eq(inventory.userId, userId))
       .orderBy(asc(products.name));
 
-    return result as InventoryWithProduct[];
+    return result.map(row => ({
+      ...row.inventory,
+      product: {
+        ...row.products!,
+        category: row.categories || null
+      }
+    })) as InventoryWithProduct[];
   }
 
   async getInventoryItem(productId: number, userId: number): Promise<InventoryWithProduct | undefined> {
     const [result] = await db
-      .select({
-        id: inventory.id,
-        productId: inventory.productId,
-        userId: inventory.userId,
-        currentStock: inventory.currentStock,
-        reorderPoint: inventory.reorderPoint,
-        maxStock: inventory.maxStock,
-        lastRestocked: inventory.lastRestocked,
-        expirationDate: inventory.expirationDate,
-        location: inventory.location,
-        updatedAt: inventory.updatedAt,
-        product: {
-          id: products.id,
-          name: products.name,
-          description: products.description,
-          sku: products.sku,
-          categoryId: products.categoryId,
-          userId: products.userId,
-          unit: products.unit,
-          costPrice: products.costPrice,
-          sellingPrice: products.sellingPrice,
-          imageUrl: products.imageUrl,
-          isPerishable: products.isPerishable,
-          shelfLifeDays: products.shelfLifeDays,
-          createdAt: products.createdAt,
-          updatedAt: products.updatedAt,
-          category: {
-            id: categories.id,
-            name: categories.name ?? "",
-            description: categories.description,
-            userId: categories.userId,
-            createdAt: categories.createdAt,
-          },
-        },
-      })
+      .select()
       .from(inventory)
       .leftJoin(products, eq(inventory.productId, products.id))
       .leftJoin(categories, eq(products.categoryId, categories.id))
       .where(and(eq(inventory.productId, productId), eq(inventory.userId, userId)));
 
-    return result as InventoryWithProduct;
+    if (!result) return undefined;
+
+    return {
+      ...result.inventory,
+      product: {
+        ...result.products!,
+        category: result.categories || null
+      }
+    } as InventoryWithProduct;
   }
 
   async createInventoryItem(item: InsertInventory & { userId: number }): Promise<Inventory> {
@@ -429,6 +381,18 @@ export class DatabaseStorage implements IStorage {
       .from(demandForecast)
       .where(and(...conditions))
       .orderBy(asc(demandForecast.forecastDate));
+  }
+
+  async getCategories(): Promise<Category[]> {
+    return await db
+      .select()
+      .from(categories)
+      .orderBy(asc(categories.name));
+  }
+
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const [newCategory] = await db.insert(categories).values(category).returning();
+    return newCategory;
   }
 }
 
