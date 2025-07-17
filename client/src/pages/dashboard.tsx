@@ -13,6 +13,7 @@ import WasteAnalysis from "@/components/dashboard/waste-analysis";
 import InventoryTable from "@/components/dashboard/inventory-table";
 import SupplierPerformance from "@/components/dashboard/supplier-performance";
 import AIAssistant from "@/components/ai/ai-assistant";
+import AchievementDashboard from "@/components/achievements/achievement-dashboard";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -50,10 +51,19 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <DemandForecast />
-            <WasteAnalysis />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <DemandForecast />
+                <WasteAnalysis />
+              </div>
+            </div>
+            <div className="lg:col-span-1" data-tour="achievements">
+              <AchievementDashboard />
+            </div>
           </div>
+          
+
           
           <div className="mt-6">
             <InventoryTable />

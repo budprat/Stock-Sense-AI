@@ -9,6 +9,9 @@ import {
   categories,
   purchaseOrders,
   feedback,
+  achievements,
+  userAchievements,
+  userStats,
   type User,
   type InsertUser,
   type Product,
@@ -27,6 +30,13 @@ import {
   type InsertCategory,
   type Feedback,
   type InsertFeedback,
+  type Achievement,
+  type InsertAchievement,
+  type UserAchievement,
+  type InsertUserAchievement,
+  type UserStats,
+  type InsertUserStats,
+  type AchievementWithProgress,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, asc } from "drizzle-orm";
@@ -90,6 +100,15 @@ export interface IStorage {
   // Feedback operations
   createFeedback(feedback: InsertFeedback): Promise<Feedback>;
   getFeedback(userId: number): Promise<Feedback[]>;
+
+  // Achievement operations
+  getAchievements(): Promise<Achievement[]>;
+  getUserAchievements(userId: string): Promise<AchievementWithProgress[]>;
+  getUserStats(userId: string): Promise<UserStats | undefined>;
+  updateUserStats(userId: string, stats: Partial<UserStats>): Promise<UserStats>;
+  updateAchievementProgress(userId: string, achievementId: number, progress: number): Promise<UserAchievement>;
+  completeAchievement(userId: string, achievementId: number): Promise<UserAchievement>;
+  checkAndUpdateAchievements(userId: string): Promise<Achievement[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -422,6 +441,184 @@ export class DatabaseStorage implements IStorage {
       .from(feedback)
       .where(eq(feedback.userId, userId))
       .orderBy(desc(feedback.createdAt));
+  }
+
+  // Achievement operations
+  async getAchievements(): Promise<Achievement[]> {
+    return await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.isActive, true))
+      .orderBy(asc(achievements.category), asc(achievements.name));
+  }
+
+  async getUserAchievements(userId: string): Promise<AchievementWithProgress[]> {
+    const result = await db
+      .select({
+        id: achievements.id,
+        name: achievements.name,
+        description: achievements.description,
+        icon: achievements.icon,
+        category: achievements.category,
+        points: achievements.points,
+        requirement: achievements.requirement,
+        isActive: achievements.isActive,
+        createdAt: achievements.createdAt,
+        progress: userAchievements.progress,
+        isCompleted: userAchievements.isCompleted,
+        completedAt: userAchievements.completedAt,
+      })
+      .from(achievements)
+      .leftJoin(userAchievements, and(
+        eq(achievements.id, userAchievements.achievementId),
+        eq(userAchievements.userId, userId)
+      ))
+      .where(eq(achievements.isActive, true))
+      .orderBy(asc(achievements.category), asc(achievements.name));
+
+    return result.map(row => ({
+      ...row,
+      progress: row.progress || 0,
+      isCompleted: row.isCompleted || false,
+      completedAt: row.completedAt || undefined,
+    }));
+  }
+
+  async getUserStats(userId: string): Promise<UserStats | undefined> {
+    const [stats] = await db
+      .select()
+      .from(userStats)
+      .where(eq(userStats.userId, userId));
+
+    if (!stats) {
+      // Create initial stats for new user
+      const [newStats] = await db
+        .insert(userStats)
+        .values({ userId })
+        .returning();
+      return newStats;
+    }
+
+    return stats;
+  }
+
+  async updateUserStats(userId: string, statsUpdate: Partial<UserStats>): Promise<UserStats> {
+    const [stats] = await db
+      .update(userStats)
+      .set({ ...statsUpdate, updatedAt: new Date() })
+      .where(eq(userStats.userId, userId))
+      .returning();
+
+    return stats;
+  }
+
+  async updateAchievementProgress(userId: string, achievementId: number, progress: number): Promise<UserAchievement> {
+    const existing = await db
+      .select()
+      .from(userAchievements)
+      .where(and(
+        eq(userAchievements.userId, userId),
+        eq(userAchievements.achievementId, achievementId)
+      ));
+
+    if (existing.length === 0) {
+      const [newAchievement] = await db
+        .insert(userAchievements)
+        .values({
+          userId,
+          achievementId,
+          progress,
+        })
+        .returning();
+      return newAchievement;
+    } else {
+      const [updatedAchievement] = await db
+        .update(userAchievements)
+        .set({ progress })
+        .where(and(
+          eq(userAchievements.userId, userId),
+          eq(userAchievements.achievementId, achievementId)
+        ))
+        .returning();
+      return updatedAchievement;
+    }
+  }
+
+  async completeAchievement(userId: string, achievementId: number): Promise<UserAchievement> {
+    const [completedAchievement] = await db
+      .update(userAchievements)
+      .set({
+        isCompleted: true,
+        completedAt: new Date(),
+      })
+      .where(and(
+        eq(userAchievements.userId, userId),
+        eq(userAchievements.achievementId, achievementId)
+      ))
+      .returning();
+
+    // Update user stats
+    const currentStats = await this.getUserStats(userId);
+    if (currentStats) {
+      await this.updateUserStats(userId, {
+        totalAchievements: currentStats.totalAchievements + 1,
+        totalPoints: currentStats.totalPoints + (await this.getAchievementPoints(achievementId)),
+      });
+    }
+
+    return completedAchievement;
+  }
+
+  async checkAndUpdateAchievements(userId: string): Promise<Achievement[]> {
+    const stats = await this.getUserStats(userId);
+    const userAchievements = await this.getUserAchievements(userId);
+    const completedAchievements: Achievement[] = [];
+
+    // Check each achievement type
+    for (const achievement of userAchievements) {
+      if (achievement.isCompleted) continue;
+
+      let shouldComplete = false;
+      const requirement = achievement.requirement as any;
+
+      switch (achievement.category) {
+        case 'waste_reduction':
+          if (requirement.type === 'waste_free_days' && stats && stats.wasteFreeDays >= requirement.target) {
+            shouldComplete = true;
+          }
+          break;
+        case 'forecasting':
+          if (requirement.type === 'accurate_predictions' && stats && stats.accuratePredictions >= requirement.target) {
+            shouldComplete = true;
+          }
+          break;
+        case 'inventory':
+          if (requirement.type === 'optimal_stock_days' && stats && stats.optimalStockDays >= requirement.target) {
+            shouldComplete = true;
+          }
+          break;
+        case 'streak':
+          if (requirement.type === 'daily_streak' && stats && stats.currentStreak >= requirement.target) {
+            shouldComplete = true;
+          }
+          break;
+      }
+
+      if (shouldComplete) {
+        await this.completeAchievement(userId, achievement.id);
+        completedAchievements.push(achievement);
+      }
+    }
+
+    return completedAchievements;
+  }
+
+  private async getAchievementPoints(achievementId: number): Promise<number> {
+    const [achievement] = await db
+      .select({ points: achievements.points })
+      .from(achievements)
+      .where(eq(achievements.id, achievementId));
+    return achievement?.points || 100;
   }
 }
 

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -441,4 +441,68 @@ export type PurchaseOrderWithDetails = PurchaseOrder & {
   items: (typeof purchaseOrderItems.$inferSelect & {
     product: Product;
   })[];
+};
+
+// Achievement system tables
+export const achievements = pgTable("achievements", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description").notNull(),
+  icon: varchar("icon", { length: 50 }).notNull(),
+  category: varchar("category", { length: 50 }).notNull(),
+  points: integer("points").default(100),
+  requirement: jsonb("requirement").notNull(), // Stores achievement criteria
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userAchievements = pgTable("user_achievements", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  achievementId: integer("achievement_id").notNull().references(() => achievements.id),
+  progress: integer("progress").default(0),
+  isCompleted: boolean("is_completed").default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userStats = pgTable("user_stats", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  totalPoints: integer("total_points").default(0),
+  totalAchievements: integer("total_achievements").default(0),
+  currentStreak: integer("current_streak").default(0),
+  longestStreak: integer("longest_streak").default(0),
+  wasteFreeDays: integer("waste_free_days").default(0),
+  accuratePredictions: integer("accurate_predictions").default(0),
+  optimalStockDays: integer("optimal_stock_days").default(0),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = typeof achievements.$inferInsert;
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = typeof userAchievements.$inferInsert;
+export type UserStats = typeof userStats.$inferSelect;
+export type InsertUserStats = typeof userStats.$inferInsert;
+
+export const insertAchievementSchema = createInsertSchema(achievements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserAchievementSchema = createInsertSchema(userAchievements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserStatsSchema = createInsertSchema(userStats).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type AchievementWithProgress = Achievement & {
+  progress: number;
+  isCompleted: boolean;
+  completedAt?: Date;
 };

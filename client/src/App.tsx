@@ -14,14 +14,19 @@ import Settings from "@/pages/settings";
 import Reports from "@/pages/reports";
 import Locations from "@/pages/locations";
 import Users from "@/pages/users";
+import Achievements from "@/pages/achievements";
 import NotFound from "@/pages/not-found";
 import OnboardingTutorial from "@/components/onboarding/onboarding-tutorial";
 import FeedbackWidget from "@/components/feedback/feedback-widget";
+import AchievementNotification from "@/components/achievements/achievement-notification";
 import { useOnboarding } from "@/hooks/use-onboarding";
+import { useState } from "react";
+import type { Achievement } from "@shared/schema";
 
 function Router() {
   const { isAuthenticated, isFirstTime } = useAuth();
   const { showOnboarding, completeOnboarding, skipOnboarding } = useOnboarding();
+  const [achievementNotification, setAchievementNotification] = useState<Achievement | null>(null);
 
   return (
     <>
@@ -45,6 +50,7 @@ function Router() {
         <Route path="/reports" component={Reports} />
         <Route path="/locations" component={Locations} />
         <Route path="/users" component={Users} />
+        <Route path="/achievements" component={Achievements} />
         <Route path="/onboarding" component={Onboarding} />
         <Route component={NotFound} />
       </Switch>
@@ -59,6 +65,12 @@ function Router() {
       
       {/* Feedback Widget */}
       {isAuthenticated && <FeedbackWidget />}
+      
+      {/* Achievement Notification */}
+      <AchievementNotification 
+        achievement={achievementNotification} 
+        onClose={() => setAchievementNotification(null)} 
+      />
     </>
   );
 }

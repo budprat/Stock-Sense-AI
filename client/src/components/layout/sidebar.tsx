@@ -9,7 +9,8 @@ import {
   Settings,
   FileText,
   MapPin,
-  Users
+  Users,
+  Trophy
 } from "lucide-react";
 
 const navigation = [
@@ -20,6 +21,7 @@ const navigation = [
   { name: "Suppliers", icon: Truck, href: "/suppliers" },
   { name: "Locations", icon: MapPin, href: "/locations" },
   { name: "Users", icon: Users, href: "/users" },
+  { name: "Achievements", icon: Trophy, href: "/achievements" },
   { name: "Settings", icon: Settings, href: "/settings" },
 ];
 

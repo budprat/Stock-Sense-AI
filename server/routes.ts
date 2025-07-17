@@ -1,9 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertProductSchema, insertInventorySchema, insertSupplierSchema, insertAiRecommendationSchema, insertWasteRecordSchema, insertFeedbackSchema } from "@shared/schema";
+import { insertProductSchema, insertInventorySchema, insertSupplierSchema, insertAiRecommendationSchema, insertWasteRecordSchema, insertFeedbackSchema, insertAchievementSchema, insertUserStatsSchema, achievements } from "@shared/schema";
 import { z } from "zod";
 import { aiAssistant } from "./ai-assistant";
+import { db } from "./db";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Mock user ID for demo purposes (in production, get from auth)
@@ -462,6 +463,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching feedback:", error);
       res.status(500).json({ error: "Failed to fetch feedback" });
+    }
+  });
+
+  // Achievement system routes
+  app.get("/api/achievements", async (req, res) => {
+    try {
+      const achievements = await storage.getAchievements();
+      res.json(achievements);
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      res.status(500).json({ error: "Failed to fetch achievements" });
+    }
+  });
+
+  app.get("/api/achievements/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const userAchievements = await storage.getUserAchievements(userId);
+      res.json(userAchievements);
+    } catch (error) {
+      console.error("Error fetching user achievements:", error);
+      res.status(500).json({ error: "Failed to fetch user achievements" });
+    }
+  });
+
+  app.get("/api/achievements/stats/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const userStats = await storage.getUserStats(userId);
+      res.json(userStats);
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ error: "Failed to fetch user stats" });
+    }
+  });
+
+  app.post("/api/achievements/stats/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const statsUpdate = req.body;
+      const updatedStats = await storage.updateUserStats(userId, statsUpdate);
+      
+      // Check for new achievements
+      const newAchievements = await storage.checkAndUpdateAchievements(userId);
+      
+      res.json({ 
+        stats: updatedStats,
+        newAchievements,
+      });
+    } catch (error) {
+      console.error("Error updating user stats:", error);
+      res.status(500).json({ error: "Failed to update user stats" });
+    }
+  });
+
+  app.post("/api/achievements/check/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const completedAchievements = await storage.checkAndUpdateAchievements(userId);
+      res.json(completedAchievements);
+    } catch (error) {
+      console.error("Error checking achievements:", error);
+      res.status(500).json({ error: "Failed to check achievements" });
+    }
+  });
+
+  // Initialize achievements
+  app.post("/api/achievements/init", async (req, res) => {
+    try {
+      const MOCK_USER_ID = "1";
+      
+      // Initialize achievements if not exists
+      const existingAchievements = await storage.getAchievements();
+      if (existingAchievements.length === 0) {
+        const demoAchievements = [
+          {
+            name: "First Steps",
+            description: "Complete your first inventory check",
+            icon: "target",
+            category: "milestone",
+            points: 50,
+            requirement: { type: "inventory_check", target: 1 },
+            isActive: true,
+          },
+          {
+            name: "Zero Waste Warrior",
+            description: "Achieve 7 consecutive days with no inventory waste",
+            icon: "shield",
+            category: "waste_reduction",
+            points: 200,
+            requirement: { type: "waste_free_days", target: 7 },
+            isActive: true,
+          },
+          {
+            name: "Forecast Master",
+            description: "Make 10 accurate demand predictions",
+            icon: "trending-up",
+            category: "forecasting",
+            points: 150,
+            requirement: { type: "accurate_predictions", target: 10 },
+            isActive: true,
+          },
+          {
+            name: "Inventory Optimizer",
+            description: "Maintain optimal stock levels for 30 days",
+            icon: "package",
+            category: "inventory",
+            points: 300,
+            requirement: { type: "optimal_stock_days", target: 30 },
+            isActive: true,
+          },
+          {
+            name: "Streak Champion",
+            description: "Log inventory updates for 14 consecutive days",
+            icon: "zap",
+            category: "streak",
+            points: 250,
+            requirement: { type: "daily_streak", target: 14 },
+            isActive: true,
+          },
+          {
+            name: "Efficiency Expert",
+            description: "Reduce inventory processing time by 50%",
+            icon: "star",
+            category: "efficiency",
+            points: 400,
+            requirement: { type: "processing_time_reduction", target: 50 },
+            isActive: true,
+          },
+          {
+            name: "Waste Reduction Hero",
+            description: "Achieve 30 consecutive days with no waste",
+            icon: "shield-check",
+            category: "waste_reduction",
+            points: 500,
+            requirement: { type: "waste_free_days", target: 30 },
+            isActive: true,
+          },
+          {
+            name: "Prediction Pro",
+            description: "Achieve 95% accuracy in demand forecasting",
+            icon: "trending-up",
+            category: "forecasting",
+            points: 600,
+            requirement: { type: "prediction_accuracy", target: 95 },
+            isActive: true,
+          },
+        ];
+
+        for (const achievement of demoAchievements) {
+          await db.insert(achievements).values(achievement);
+        }
+      }
+
+      // Initialize user stats
+      const userStats = await storage.getUserStats(MOCK_USER_ID);
+      if (!userStats) {
+        await storage.updateUserStats(MOCK_USER_ID, {
+          wasteFreeDays: 3,
+          accuratePredictions: 2,
+          optimalStockDays: 5,
+          currentStreak: 3,
+          longestStreak: 5,
+        });
+      }
+
+      res.json({ message: "Achievements initialized successfully" });
+    } catch (error) {
+      console.error("Error initializing achievements:", error);
+      res.status(500).json({ error: "Failed to initialize achievements" });
     }
   });
 
