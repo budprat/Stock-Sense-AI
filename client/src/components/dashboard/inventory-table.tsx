@@ -11,7 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Package, Download } from "lucide-react";
+import { Package, Download, MoreHorizontal, Edit, Eye, ShoppingCart, Trash2 } from "lucide-react";
+import QuickActionTooltip, { inventoryActions } from "@/components/ui/quick-action-tooltip";
 
 export default function InventoryTable() {
   const { data: inventory, isLoading } = useQuery({
@@ -118,10 +119,15 @@ export default function InventoryTable() {
                   </TableCell>
                   <TableCell>{getExpirationStatus(item.expirationDate)}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm" className="text-primary">
-                      {parseFloat(item.currentStock) === 0 ? "Emergency Order" : 
-                       parseFloat(item.currentStock) <= parseFloat(item.reorderPoint) ? "Order" : "View"}
-                    </Button>
+                    <QuickActionTooltip
+                      actions={inventoryActions}
+                      trigger={
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-100">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      }
+                      side="left"
+                    />
                   </TableCell>
                 </TableRow>
               ))}

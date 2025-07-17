@@ -12,6 +12,7 @@ import DemandForecast from "@/components/dashboard/demand-forecast";
 import WasteAnalysis from "@/components/dashboard/waste-analysis";
 import InventoryTable from "@/components/dashboard/inventory-table";
 import SupplierPerformance from "@/components/dashboard/supplier-performance";
+import AIAssistant from "@/components/ai/ai-assistant";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -64,15 +65,8 @@ export default function Dashboard() {
         </div>
       </main>
       
-      {/* Floating Action Button */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <Button
-          size="lg"
-          className="rounded-full w-14 h-14 p-0 shadow-lg hover:shadow-xl transition-shadow"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      </div>
+      {/* AI Assistant */}
+      <AIAssistant />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertProductSchema, insertInventorySchema, insertSupplierSchema, insertAiRecommendationSchema, insertWasteRecordSchema } from "@shared/schema";
 import { z } from "zod";
+import { aiAssistant } from "./ai-assistant";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Mock user ID for demo purposes (in production, get from auth)
@@ -387,6 +388,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating category:", error);
       res.status(500).json({ message: "Failed to create category" });
+    }
+  });
+
+  // AI Assistant Routes
+  app.get('/api/ai/recommendations', async (req, res) => {
+    try {
+      const recommendations = await aiAssistant.generateProactiveRecommendations(MOCK_USER_ID);
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error generating AI recommendations:", error);
+      res.status(500).json({ message: "Failed to generate recommendations" });
+    }
+  });
+
+  app.get('/api/ai/insights/:productId', async (req, res) => {
+    try {
+      const productId = parseInt(req.params.productId);
+      const insights = await aiAssistant.analyzeInventoryTrends(MOCK_USER_ID, productId);
+      res.json(insights);
+    } catch (error) {
+      console.error("Error analyzing inventory trends:", error);
+      res.status(500).json({ message: "Failed to analyze trends" });
+    }
+  });
+
+  app.get('/api/ai/report', async (req, res) => {
+    try {
+      const report = await aiAssistant.generateInventoryReport(MOCK_USER_ID);
+      res.json({ report });
+    } catch (error) {
+      console.error("Error generating inventory report:", error);
+      res.status(500).json({ message: "Failed to generate report" });
+    }
+  });
+
+  app.post('/api/ai/optimize-reorder', async (req, res) => {
+    try {
+      const { productIds } = req.body;
+      if (!productIds || !Array.isArray(productIds)) {
+        return res.status(400).json({ message: "Product IDs array is required" });
+      }
+      
+      const recommendations = await aiAssistant.optimizeReorderQuantities(MOCK_USER_ID, productIds);
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error optimizing reorder quantities:", error);
+      res.status(500).json({ message: "Failed to optimize quantities" });
     }
   });
 
