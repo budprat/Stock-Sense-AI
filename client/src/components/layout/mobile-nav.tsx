@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "wouter";
 import { Menu, X, LayoutDashboard, Package, BarChart3, Truck, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "#dashboard", current: true },
-  { name: "Inventory", icon: Package, href: "#inventory", current: false },
-  { name: "Analytics", icon: BarChart3, href: "#analytics", current: false },
-  { name: "Suppliers", icon: Truck, href: "#suppliers", current: false },
-  { name: "Settings", icon: Settings, href: "#settings", current: false },
+  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { name: "Inventory", icon: Package, href: "/inventory" },
+  { name: "Analytics", icon: BarChart3, href: "/analytics" },
+  { name: "Suppliers", icon: Truck, href: "/suppliers" },
+  { name: "Settings", icon: Settings, href: "/settings" },
 ];
 
 export default function MobileNav() {
   const [isOpen, setIsOpen] = useState(false);
+  const [location] = useLocation();
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -32,20 +34,21 @@ export default function MobileNav() {
         <nav className="mt-4">
           {navigation.map((item) => {
             const Icon = item.icon;
+            const isActive = location === item.href || (location === "/" && item.href === "/dashboard");
             return (
               <Button
                 key={item.name}
                 variant="ghost"
                 className={cn(
                   "w-full justify-start h-12 px-4 rounded-none",
-                  item.current && "bg-primary text-primary-foreground border-l-4 border-primary"
+                  isActive && "bg-primary text-primary-foreground border-l-4 border-primary"
                 )}
                 asChild
               >
-                <a href={item.href} onClick={() => setIsOpen(false)}>
+                <Link href={item.href} onClick={() => setIsOpen(false)}>
                   <Icon className="mr-3 h-5 w-5" />
                   {item.name}
-                </a>
+                </Link>
               </Button>
             );
           })}

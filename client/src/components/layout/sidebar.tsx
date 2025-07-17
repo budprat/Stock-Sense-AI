@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Link, useLocation } from "wouter";
 import { 
   LayoutDashboard, 
   Package, 
@@ -9,14 +10,16 @@ import {
 } from "lucide-react";
 
 const navigation = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "#dashboard", current: true },
-  { name: "Inventory", icon: Package, href: "#inventory", current: false },
-  { name: "Analytics", icon: BarChart3, href: "#analytics", current: false },
-  { name: "Suppliers", icon: Truck, href: "#suppliers", current: false },
-  { name: "Settings", icon: Settings, href: "#settings", current: false },
+  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { name: "Inventory", icon: Package, href: "/inventory" },
+  { name: "Analytics", icon: BarChart3, href: "/analytics" },
+  { name: "Suppliers", icon: Truck, href: "/suppliers" },
+  { name: "Settings", icon: Settings, href: "/settings" },
 ];
 
 export default function Sidebar() {
+  const [location] = useLocation();
+
   return (
     <aside className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col pt-16">
       <div className="flex-1 flex flex-col min-h-0 bg-surface border-r border-border">
@@ -24,20 +27,21 @@ export default function Sidebar() {
           <nav className="mt-5 flex-1 px-2 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
+              const isActive = location === item.href || (location === "/" && item.href === "/dashboard");
               return (
                 <Button
                   key={item.name}
-                  variant={item.current ? "default" : "ghost"}
+                  variant={isActive ? "default" : "ghost"}
                   className={cn(
                     "w-full justify-start",
-                    item.current && "bg-primary text-primary-foreground"
+                    isActive && "bg-primary text-primary-foreground"
                   )}
                   asChild
                 >
-                  <a href={item.href}>
+                  <Link href={item.href}>
                     <Icon className="mr-3 h-5 w-5" />
                     {item.name}
-                  </a>
+                  </Link>
                 </Button>
               );
             })}

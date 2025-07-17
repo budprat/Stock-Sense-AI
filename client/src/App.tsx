@@ -7,6 +7,10 @@ import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import Landing from "@/pages/landing";
 import Onboarding from "@/pages/onboarding";
 import Dashboard from "@/pages/dashboard";
+import Inventory from "@/pages/inventory";
+import Analytics from "@/pages/analytics";
+import Suppliers from "@/pages/suppliers";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -26,6 +30,10 @@ function Router() {
         }}
       </Route>
       <Route path="/dashboard" component={Dashboard} />
+      <Route path="/inventory" component={Inventory} />
+      <Route path="/analytics" component={Analytics} />
+      <Route path="/suppliers" component={Suppliers} />
+      <Route path="/settings" component={Settings} />
       <Route path="/onboarding" component={Onboarding} />
       <Route component={NotFound} />
     </Switch>
