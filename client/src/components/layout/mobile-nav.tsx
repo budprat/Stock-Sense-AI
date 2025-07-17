@@ -2,14 +2,17 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
-import { Menu, X, LayoutDashboard, Package, BarChart3, Truck, Settings } from "lucide-react";
+import { Menu, X, LayoutDashboard, Package, BarChart3, Truck, Settings, FileText, MapPin, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { name: "Inventory", icon: Package, href: "/inventory" },
   { name: "Analytics", icon: BarChart3, href: "/analytics" },
+  { name: "Reports", icon: FileText, href: "/reports" },
   { name: "Suppliers", icon: Truck, href: "/suppliers" },
+  { name: "Locations", icon: MapPin, href: "/locations" },
+  { name: "Users", icon: Users, href: "/users" },
   { name: "Settings", icon: Settings, href: "/settings" },
 ];
 

@@ -13,8 +13,57 @@ export const users = pgTable("users", {
   lastName: text("last_name"),
   businessType: text("business_type"), // 'restaurant' | 'retail'
   profileImage: text("profile_image"),
+  role: text("role").notNull().default("user"), // 'admin', 'manager', 'user', 'viewer'
+  permissions: jsonb("permissions").default([]), // Array of permission strings
+  organizationId: integer("organization_id").references(() => organizations.id),
+  defaultLocationId: integer("default_location_id").references(() => locations.id),
+  isActive: boolean("is_active").default(true),
+  lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Organizations table
+export const organizations = pgTable("organizations", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  businessType: text("business_type"), // 'restaurant' | 'retail' | 'wholesale'
+  settings: jsonb("settings").default({}),
+  subscriptionPlan: text("subscription_plan").default("basic"), // 'basic', 'pro', 'enterprise'
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Locations table
+export const locations = pgTable("locations", {
+  id: serial("id").primaryKey(),
+  organizationId: integer("organization_id").references(() => organizations.id),
+  name: text("name").notNull(),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  postalCode: text("postal_code"),
+  country: text("country"),
+  phone: text("phone"),
+  email: text("email"),
+  managerId: integer("manager_id").references(() => users.id),
+  type: text("type").notNull().default("store"), // 'store', 'warehouse', 'distribution_center'
+  isActive: boolean("is_active").default(true),
+  settings: jsonb("settings").default({}),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User location access table
+export const userLocationAccess = pgTable("user_location_access", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  locationId: integer("location_id").references(() => locations.id),
+  accessLevel: text("access_level").notNull().default("read"), // 'read', 'write', 'admin'
+  grantedAt: timestamp("granted_at").defaultNow(),
+  grantedBy: integer("granted_by").references(() => users.id),
 });
 
 // Categories table
@@ -23,6 +72,7 @@ export const categories = pgTable("categories", {
   name: text("name").notNull(),
   description: text("description"),
   userId: integer("user_id").references(() => users.id),
+  organizationId: integer("organization_id").references(() => organizations.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -34,6 +84,7 @@ export const products = pgTable("products", {
   sku: text("sku").unique(),
   categoryId: integer("category_id").references(() => categories.id),
   userId: integer("user_id").references(() => users.id),
+  organizationId: integer("organization_id").references(() => organizations.id),
   unit: text("unit").notNull(), // 'lbs', 'bottles', 'pieces', etc.
   costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
   sellingPrice: decimal("selling_price", { precision: 10, scale: 2 }),
@@ -49,12 +100,13 @@ export const inventory = pgTable("inventory", {
   id: serial("id").primaryKey(),
   productId: integer("product_id").references(() => products.id),
   userId: integer("user_id").references(() => users.id),
+  locationId: integer("location_id").references(() => locations.id),
   currentStock: decimal("current_stock", { precision: 10, scale: 2 }).notNull(),
   reorderPoint: decimal("reorder_point", { precision: 10, scale: 2 }).notNull(),
   maxStock: decimal("max_stock", { precision: 10, scale: 2 }),
   lastRestocked: timestamp("last_restocked"),
   expirationDate: timestamp("expiration_date"),
-  location: text("location"),
+  location: text("location"), // Legacy field for backward compatibility
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
@@ -67,8 +119,35 @@ export const suppliers = pgTable("suppliers", {
   phone: text("phone"),
   address: text("address"),
   userId: integer("user_id").references(() => users.id),
+  organizationId: integer("organization_id").references(() => organizations.id),
   rating: decimal("rating", { precision: 2, scale: 1 }),
   leadTimeDays: integer("lead_time_days"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Roles table
+export const roles = pgTable("roles", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  organizationId: integer("organization_id").references(() => organizations.id),
+  permissions: jsonb("permissions").default([]), // Array of permission strings
+  isSystemRole: boolean("is_system_role").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Permission audit log
+export const permissionAuditLog = pgTable("permission_audit_log", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  action: text("action").notNull(), // 'granted', 'revoked', 'modified'
+  resourceType: text("resource_type").notNull(), // 'user', 'location', 'product', etc.
+  resourceId: integer("resource_id"),
+  permission: text("permission").notNull(),
+  performedBy: integer("performed_by").references(() => users.id),
+  organizationId: integer("organization_id").references(() => organizations.id),
+  locationId: integer("location_id").references(() => locations.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -77,6 +156,7 @@ export const purchaseOrders = pgTable("purchase_orders", {
   id: serial("id").primaryKey(),
   supplierId: integer("supplier_id").references(() => suppliers.id),
   userId: integer("user_id").references(() => users.id),
+  locationId: integer("location_id").references(() => locations.id),
   orderNumber: text("order_number").notNull(),
   status: text("status").notNull(), // 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'
   totalAmount: decimal("total_amount", { precision: 10, scale: 2 }),
@@ -102,6 +182,7 @@ export const aiRecommendations = pgTable("ai_recommendations", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   productId: integer("product_id").references(() => products.id),
+  locationId: integer("location_id").references(() => locations.id),
   type: text("type").notNull(), // 'reorder', 'promotion', 'emergency', 'waste_alert'
   priority: text("priority").notNull(), // 'low', 'medium', 'high', 'critical'
   message: text("message").notNull(),
@@ -118,6 +199,7 @@ export const demandForecast = pgTable("demand_forecast", {
   id: serial("id").primaryKey(),
   productId: integer("product_id").references(() => products.id),
   userId: integer("user_id").references(() => users.id),
+  locationId: integer("location_id").references(() => locations.id),
   forecastDate: timestamp("forecast_date").notNull(),
   predictedDemand: decimal("predicted_demand", { precision: 10, scale: 2 }).notNull(),
   confidence: decimal("confidence", { precision: 3, scale: 2 }),
@@ -130,6 +212,7 @@ export const wasteRecords = pgTable("waste_records", {
   id: serial("id").primaryKey(),
   productId: integer("product_id").references(() => products.id),
   userId: integer("user_id").references(() => users.id),
+  locationId: integer("location_id").references(() => locations.id),
   quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
   reason: text("reason").notNull(), // 'expired', 'spoiled', 'damaged', 'other'
   costImpact: decimal("cost_impact", { precision: 10, scale: 2 }),
@@ -139,7 +222,9 @@ export const wasteRecords = pgTable("waste_records", {
 });
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
+  organization: one(organizations, { fields: [users.organizationId], references: [organizations.id] }),
+  defaultLocation: one(locations, { fields: [users.defaultLocationId], references: [locations.id] }),
   products: many(products),
   inventory: many(inventory),
   suppliers: many(suppliers),
@@ -148,6 +233,47 @@ export const usersRelations = relations(users, ({ many }) => ({
   demandForecast: many(demandForecast),
   wasteRecords: many(wasteRecords),
   categories: many(categories),
+  locationAccess: many(userLocationAccess),
+  permissionAuditLog: many(permissionAuditLog),
+}));
+
+export const organizationsRelations = relations(organizations, ({ many }) => ({
+  users: many(users),
+  locations: many(locations),
+  categories: many(categories),
+  products: many(products),
+  suppliers: many(suppliers),
+  roles: many(roles),
+  permissionAuditLog: many(permissionAuditLog),
+}));
+
+export const locationsRelations = relations(locations, ({ one, many }) => ({
+  organization: one(organizations, { fields: [locations.organizationId], references: [organizations.id] }),
+  manager: one(users, { fields: [locations.managerId], references: [users.id] }),
+  inventory: many(inventory),
+  purchaseOrders: many(purchaseOrders),
+  aiRecommendations: many(aiRecommendations),
+  demandForecast: many(demandForecast),
+  wasteRecords: many(wasteRecords),
+  userAccess: many(userLocationAccess),
+  permissionAuditLog: many(permissionAuditLog),
+}));
+
+export const rolesRelations = relations(roles, ({ one }) => ({
+  organization: one(organizations, { fields: [roles.organizationId], references: [organizations.id] }),
+}));
+
+export const userLocationAccessRelations = relations(userLocationAccess, ({ one }) => ({
+  user: one(users, { fields: [userLocationAccess.userId], references: [users.id] }),
+  location: one(locations, { fields: [userLocationAccess.locationId], references: [locations.id] }),
+  grantedByUser: one(users, { fields: [userLocationAccess.grantedBy], references: [users.id] }),
+}));
+
+export const permissionAuditLogRelations = relations(permissionAuditLog, ({ one }) => ({
+  user: one(users, { fields: [permissionAuditLog.userId], references: [users.id] }),
+  performedByUser: one(users, { fields: [permissionAuditLog.performedBy], references: [users.id] }),
+  organization: one(organizations, { fields: [permissionAuditLog.organizationId], references: [organizations.id] }),
+  location: one(locations, { fields: [permissionAuditLog.locationId], references: [locations.id] }),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({

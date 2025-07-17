@@ -6,14 +6,20 @@ import {
   Package, 
   BarChart3, 
   Truck, 
-  Settings 
+  Settings,
+  FileText,
+  MapPin,
+  Users
 } from "lucide-react";
 
 const navigation = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { name: "Inventory", icon: Package, href: "/inventory" },
   { name: "Analytics", icon: BarChart3, href: "/analytics" },
+  { name: "Reports", icon: FileText, href: "/reports" },
   { name: "Suppliers", icon: Truck, href: "/suppliers" },
+  { name: "Locations", icon: MapPin, href: "/locations" },
+  { name: "Users", icon: Users, href: "/users" },
   { name: "Settings", icon: Settings, href: "/settings" },
 ];
 

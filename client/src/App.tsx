@@ -11,6 +11,9 @@ import Inventory from "@/pages/inventory";
 import Analytics from "@/pages/analytics";
 import Suppliers from "@/pages/suppliers";
 import Settings from "@/pages/settings";
+import Reports from "@/pages/reports";
+import Locations from "@/pages/locations";
+import Users from "@/pages/users";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -34,6 +37,9 @@ function Router() {
       <Route path="/analytics" component={Analytics} />
       <Route path="/suppliers" component={Suppliers} />
       <Route path="/settings" component={Settings} />
+      <Route path="/reports" component={Reports} />
+      <Route path="/locations" component={Locations} />
+      <Route path="/users" component={Users} />
       <Route path="/onboarding" component={Onboarding} />
       <Route component={NotFound} />
     </Switch>

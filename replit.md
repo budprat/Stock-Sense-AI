@@ -6,6 +6,13 @@ StockSense is a modern AI-powered inventory management platform designed for sma
 
 The platform targets the $3.58B inventory management market with a focus on reducing 20-30% inventory waste through AI-driven demand forecasting, automated reordering, and spoilage prediction. Target pricing is $99-$249/month with potential $5,000 monthly savings for customers.
 
+**Recent Major Updates (January 2025):**
+- Advanced analytics dashboard with demand forecasting, ABC analysis, and predictive modeling
+- Custom reporting system with scheduled reports and export capabilities (PDF, Excel, CSV)
+- Multi-location support with location-specific inventory tracking
+- Role-based permissions system with granular access controls
+- AI assistant integration with Gemini API for proactive inventory recommendations
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -32,24 +39,35 @@ Preferred communication style: Simple, everyday language.
 ## Key Components
 
 ### Database Schema
-- **Users**: Authentication and profile management
+- **Users**: Authentication, profile management, and role-based permissions
+- **Organizations**: Multi-tenant support for business entities
+- **Locations**: Multi-location support with address and management info
 - **Products**: Inventory items with categories and pricing
-- **Inventory**: Stock levels, reorder points, and expiration tracking
+- **Inventory**: Stock levels, reorder points, and location-specific tracking
 - **Suppliers**: Vendor management and performance tracking
 - **AI Recommendations**: ML-generated suggestions for inventory optimization
 - **Waste Records**: Tracking of expired and wasted inventory
 - **Demand Forecast**: Historical and predicted demand patterns
+- **Roles**: Custom role definitions with permission sets
+- **User Location Access**: Granular access control for multi-location operations
+- **Permission Audit Log**: Comprehensive audit trail for security compliance
 
 ### AI Features
-- **Demand Forecasting**: Predicts future inventory needs
+- **Demand Forecasting**: Predicts future inventory needs with seasonal trends
 - **Recommendation Engine**: Suggests reorder quantities and timing
 - **Waste Analysis**: Identifies patterns in inventory waste
 - **Supplier Performance**: Evaluates vendor reliability and quality
+- **AI Assistant**: Real-time chat interface with proactive recommendations
+- **Advanced Analytics**: Predictive modeling and ABC analysis
+- **Custom Reporting**: Automated report generation with AI insights
 
 ### User Interface
 - **Dashboard**: Comprehensive overview with critical alerts and quick stats
 - **Inventory Management**: Real-time stock tracking with health indicators
-- **Analytics**: Visual charts for demand forecasting and waste analysis
+- **Advanced Analytics**: Multi-tab interface with filtering and export capabilities
+- **Custom Reports**: Template-based reporting with scheduling and automation
+- **Location Management**: Multi-location support with access control
+- **User Management**: Role-based permissions and user administration
 - **Mobile-First**: Responsive design with mobile navigation
 - **Dark Mode**: Theme switching capability
 
