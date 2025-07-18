@@ -2,9 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import Header from "@/components/layout/header";
-import Sidebar from "@/components/layout/sidebar";
-import MobileNav from "@/components/layout/mobile-nav";
+import AppLayout from "@/components/layout/app-layout";
 import { Truck, Star, TrendingUp, TrendingDown, Plus, Phone, Mail, MapPin } from "lucide-react";
 
 export default function Suppliers() {
@@ -25,13 +23,7 @@ export default function Suppliers() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <MobileNav />
-      <Sidebar />
-      
-      <main className="md:pl-64 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <AppLayout>
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Supplier Management</h1>
@@ -236,8 +228,6 @@ export default function Suppliers() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      </main>
-    </div>
+    </AppLayout>
   );
 }

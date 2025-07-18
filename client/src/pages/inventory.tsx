@@ -6,9 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Header from "@/components/layout/header";
-import Sidebar from "@/components/layout/sidebar";
-import MobileNav from "@/components/layout/mobile-nav";
+import AppLayout from "@/components/layout/app-layout";
 import AddProductForm from "@/components/forms/add-product-form";
 import POSIntegration from "@/components/pos/pos-integration";
 import { Package, Search, Plus, AlertTriangle, CheckCircle, Clock, Settings, Zap } from "lucide-react";
@@ -47,13 +45,7 @@ export default function Inventory() {
   }, []) || [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <MobileNav />
-      <Sidebar />
-      
-      <main className="md:pl-64 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <AppLayout>
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Inventory Management</h1>
@@ -231,8 +223,6 @@ export default function Inventory() {
               <POSIntegration />
             </TabsContent>
           </Tabs>
-        </div>
-      </main>
-    </div>
+    </AppLayout>
   );
 }

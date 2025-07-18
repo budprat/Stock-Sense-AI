@@ -22,6 +22,8 @@ import {
   Truck
 } from "lucide-react";
 
+import AppLayout from "@/components/layout/app-layout";
+
 export default function SupplierComparison() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("");
@@ -44,7 +46,7 @@ export default function SupplierComparison() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AppLayout>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Supplier Comparison
@@ -389,6 +391,6 @@ export default function SupplierComparison() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </AppLayout>
   );
 }

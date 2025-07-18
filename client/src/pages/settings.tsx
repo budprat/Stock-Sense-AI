@@ -6,9 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import Header from "@/components/layout/header";
-import Sidebar from "@/components/layout/sidebar";
-import MobileNav from "@/components/layout/mobile-nav";
+import AppLayout from "@/components/layout/app-layout";
 import { Settings as SettingsIcon, User, Bell, Shield, Database, HelpCircle, Play, Phone, Eye, Zap, Check } from "lucide-react";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useToast } from "@/hooks/use-toast";
@@ -29,19 +27,13 @@ export default function Settings() {
   const { toast } = useToast();
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <MobileNav />
-      <Sidebar />
-      
-      <main className="md:pl-64 pt-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage your account preferences and system configuration
-            </p>
-          </div>
+    <AppLayout>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+        <p className="text-muted-foreground mt-1">
+          Manage your account preferences and system configuration
+        </p>
+      </div>
 
           <div className="space-y-6">
             {/* Profile Settings */}
@@ -422,8 +414,6 @@ export default function Settings() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </main>
-    </div>
+    </AppLayout>
   );
 }

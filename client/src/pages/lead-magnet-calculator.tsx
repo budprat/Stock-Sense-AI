@@ -9,6 +9,8 @@ import { Calculator, TrendingUp, Users, Target, CheckCircle, ShoppingCart } from
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
+import AppLayout from "@/components/layout/app-layout";
+
 export default function LeadMagnetCalculator() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -77,8 +79,8 @@ export default function LeadMagnetCalculator() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
+    <AppLayout>
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 -m-6 p-6 min-h-full">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
@@ -283,6 +285,6 @@ export default function LeadMagnetCalculator() {
           </Card>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import Header from "@/components/layout/header";
-import Sidebar from "@/components/layout/sidebar";
-import MobileNav from "@/components/layout/mobile-nav";
+import AppLayout from "@/components/layout/app-layout";
 import CriticalAlerts from "@/components/dashboard/critical-alerts";
 import QuickStats from "@/components/dashboard/quick-stats";
 import AIRecommendations from "@/components/dashboard/ai-recommendations";
@@ -39,58 +37,48 @@ export default function Dashboard() {
   }, [demoInitialized]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <MobileNav />
-      <Sidebar />
+    <AppLayout>
+      <CriticalAlerts />
       
-      <main className="md:pl-64 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <CriticalAlerts />
-          
-          <QuickStats />
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <InventoryHealthScore />
-            </div>
-            <div className="lg:col-span-2" data-tour="ai-recommendations">
-              <AIRecommendations />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2" data-tour="inventory-health">
-              <InventoryHealth />
-            </div>
-            <div className="lg:col-span-1">
-              <AchievementDashboard />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-            <DemandForecast />
-            <WasteAnalysis />
-          </div>
-          
-
-          
-          <div className="mt-6">
-            <InventoryTable />
-          </div>
-          
-          <div className="mt-6">
-            <SupplierPerformance />
-          </div>
-          
-          <div className="mt-6">
-            <CompetitorImport />
-          </div>
+      <QuickStats />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <InventoryHealthScore />
         </div>
-      </main>
+        <div className="lg:col-span-2" data-tour="ai-recommendations">
+          <AIRecommendations />
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2" data-tour="inventory-health">
+          <InventoryHealth />
+        </div>
+        <div className="lg:col-span-1">
+          <AchievementDashboard />
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <DemandForecast />
+        <WasteAnalysis />
+      </div>
+      
+      <div className="mt-6">
+        <InventoryTable />
+      </div>
+      
+      <div className="mt-6">
+        <SupplierPerformance />
+      </div>
+      
+      <div className="mt-6">
+        <CompetitorImport />
+      </div>
       
       {/* AI Assistant */}
       <AIAssistant />
-    </div>
+    </AppLayout>
   );
 }

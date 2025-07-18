@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import OneClickConnector from "@/components/supplier/one-click-connector";
 
+import AppLayout from "@/components/layout/app-layout";
+
 export default function SupplierMarketplace() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -179,7 +181,7 @@ export default function SupplierMarketplace() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <AppLayout>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Supplier Marketplace
@@ -533,6 +535,6 @@ export default function SupplierMarketplace() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+    </AppLayout>
   );
 }

@@ -5,9 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import Header from "@/components/layout/header";
-import Sidebar from "@/components/layout/sidebar";
-import MobileNav from "@/components/layout/mobile-nav";
+import AppLayout from "@/components/layout/app-layout";
 import { 
   Trophy, 
   Award, 
@@ -192,13 +190,7 @@ export default function Achievements() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <MobileNav />
-      <Sidebar />
-      
-      <main className="md:pl-64 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <AppLayout>
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-foreground">Inventory Hero</h1>
             <p className="text-muted-foreground mt-1">
@@ -277,8 +269,6 @@ export default function Achievements() {
               )}
             </TabsContent>
           </Tabs>
-        </div>
-      </main>
-    </div>
+    </AppLayout>
   );
 }
