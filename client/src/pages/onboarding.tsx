@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/hooks/useAuth";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import BusinessTypeSelector from "@/components/onboarding/business-type-selector";
 import { CheckCircle, ArrowRight, Target, Users, Zap } from "lucide-react";
 
@@ -33,9 +35,20 @@ const goalOptions = [
 ];
 
 export default function Onboarding() {
-  const { businessType, setBusinessType, completeOnboarding } = useAuth();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>("business-type");
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
+  const [businessType, setBusinessType] = useState<string>("");
+
+  const updateUserMutation = useMutation({
+    mutationFn: async (data: { businessType: string; goals?: string[] }) => {
+      return await apiRequest("PATCH", `/api/users/${user?.id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    },
+  });
 
   const handleBusinessTypeSelect = (type: string) => {
     setBusinessType(type);
@@ -52,8 +65,15 @@ export default function Onboarding() {
 
   const handleComplete = () => {
     setCurrentStep("complete");
+    // Update user profile with business type and goals
+    updateUserMutation.mutate({
+      businessType,
+      goals: selectedGoals,
+    });
+    
     setTimeout(() => {
-      completeOnboarding();
+      // Redirect to dashboard
+      window.location.href = "/dashboard";
     }, 2000);
   };
 

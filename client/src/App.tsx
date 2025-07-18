@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider, useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/hooks/useAuth";
 import Landing from "@/pages/landing";
 import Onboarding from "@/pages/onboarding";
 import Dashboard from "@/pages/dashboard";
@@ -24,15 +24,21 @@ import { useState } from "react";
 import type { Achievement } from "@shared/schema";
 
 function Router() {
-  const { isAuthenticated, isFirstTime } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const { showOnboarding, completeOnboarding, skipOnboarding } = useOnboarding();
   const [achievementNotification, setAchievementNotification] = useState<Achievement | null>(null);
+  
+  // Check if user is first time based on business type
+  const isFirstTime = user && !user.businessType;
 
   return (
     <>
       <Switch>
         <Route path="/">
           {() => {
+            if (isLoading) {
+              return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+            }
             if (!isAuthenticated) {
               return <Landing />;
             }
@@ -78,12 +84,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

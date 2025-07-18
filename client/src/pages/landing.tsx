@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/contexts/auth-context";
+import { LogIn } from "lucide-react";
 import { 
   Brain, 
   TrendingUp, 
@@ -166,11 +166,16 @@ const pricingPlans = [
 ];
 
 export default function Landing() {
-  const { login } = useAuth();
   const [selectedPlan, setSelectedPlan] = useState("Professional");
 
   const handleGetStarted = () => {
-    login();
+    // Navigate to Replit Auth login
+    window.location.href = "/api/login";
+  };
+
+  const handleSignIn = () => {
+    // Navigate to Replit Auth login
+    window.location.href = "/api/login";
   };
 
   return (
@@ -190,7 +195,10 @@ export default function Landing() {
               <a href="#testimonials" className="text-gray-600 hover:text-primary">Reviews</a>
             </nav>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm">Sign In</Button>
+              <Button variant="ghost" size="sm" onClick={handleSignIn}>
+                <LogIn className="h-4 w-4 mr-2" />
+                Sign In
+              </Button>
               <Button onClick={handleGetStarted} size="sm">Get Started</Button>
             </div>
           </div>

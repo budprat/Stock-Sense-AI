@@ -1,18 +1,27 @@
-import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal, jsonb, varchar, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Users table
+// Session storage table (required for Replit Auth)
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
+// Users table (compatible with Replit Auth)
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  email: text("email").notNull().unique(),
-  password: text("password").notNull(),
-  firstName: text("first_name"),
-  lastName: text("last_name"),
+  id: varchar("id").primaryKey().notNull(), // Changed to varchar for Replit Auth compatibility
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
   businessType: text("business_type"), // 'restaurant' | 'retail'
-  profileImage: text("profile_image"),
   role: text("role").notNull().default("user"), // 'admin', 'manager', 'user', 'viewer'
   permissions: jsonb("permissions").default([]), // Array of permission strings
   organizationId: integer("organization_id").references(() => organizations.id),
@@ -478,6 +487,10 @@ export const userStats = pgTable("user_stats", {
   optimalStockDays: integer("optimal_stock_days").default(0),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// User types (compatible with Replit Auth)
+export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.$inferInsert;
 
 export type Achievement = typeof achievements.$inferSelect;
 export type InsertAchievement = typeof achievements.$inferInsert;

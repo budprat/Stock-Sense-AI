@@ -5,10 +5,49 @@ import { insertProductSchema, insertInventorySchema, insertSupplierSchema, inser
 import { z } from "zod";
 import { aiAssistant } from "./ai-assistant";
 import { db } from "./db";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Replit Auth middleware
+  await setupAuth(app);
+  
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  app.patch('/api/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { id } = req.params;
+      
+      // Ensure user can only update their own profile
+      if (userId !== id) {
+        return res.status(403).json({ message: "Forbidden" });
+      }
+      
+      const updateData = req.body;
+      const updatedUser = await storage.upsertUser({
+        id: userId,
+        ...updateData,
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
   // Mock user ID for demo purposes (in production, get from auth)
-  const MOCK_USER_ID = 1;
+  const MOCK_USER_ID = "1";
 
   // Initialize demo data
   app.post("/api/init-demo", async (req, res) => {

@@ -12,6 +12,8 @@ The platform targets the $3.58B inventory management market with a focus on redu
 - Multi-location support with location-specific inventory tracking
 - Role-based permissions system with granular access controls
 - AI assistant integration with Gemini API for proactive inventory recommendations
+- Complete "Inventory Hero" achievement system with badges, points, and gamification
+- Replit Auth integration for secure user authentication and session management
 
 ## User Preferences
 
@@ -35,11 +37,13 @@ Preferred communication style: Simple, everyday language.
 - **Database**: PostgreSQL with Neon serverless connection
 - **API Design**: RESTful API with consistent JSON responses
 - **Session Management**: Express sessions with PostgreSQL storage
+- **Authentication**: Replit Auth with OpenID Connect integration
 
 ## Key Components
 
 ### Database Schema
-- **Users**: Authentication, profile management, and role-based permissions
+- **Sessions**: Session storage table for Replit Auth compatibility
+- **Users**: User profiles with Replit Auth integration (varchar ID, email, profile info)
 - **Organizations**: Multi-tenant support for business entities
 - **Locations**: Multi-location support with address and management info
 - **Products**: Inventory items with categories and pricing
@@ -51,6 +55,9 @@ Preferred communication style: Simple, everyday language.
 - **Roles**: Custom role definitions with permission sets
 - **User Location Access**: Granular access control for multi-location operations
 - **Permission Audit Log**: Comprehensive audit trail for security compliance
+- **Achievements**: Gamification system with badges and points tracking
+- **User Achievements**: Individual achievement progress and completion records
+- **User Stats**: User statistics for achievements and progress tracking
 
 ### AI Features
 - **Demand Forecasting**: Predicts future inventory needs with seasonal trends
