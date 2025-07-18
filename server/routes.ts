@@ -819,6 +819,200 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Lead Magnet Calculator routes
+  app.post("/api/lead-magnet/calculate", async (req, res) => {
+    try {
+      const { email, businessName, monthlyInventoryValue, currentWastePercentage, industry } = req.body;
+      
+      // Calculate potential savings
+      const monthlySavings = monthlyInventoryValue * (currentWastePercentage / 100) * 0.6; // 60% reduction
+      const annualSavings = monthlySavings * 12;
+      const wasteReduction = Math.min(currentWastePercentage * 0.6, 30); // Up to 30% reduction
+      const profitIncrease = (monthlySavings / monthlyInventoryValue) * 100;
+
+      // Save submission
+      const submission = await storage.createLeadMagnetSubmission({
+        email,
+        businessName,
+        monthlyInventoryValue: monthlyInventoryValue.toString(),
+        currentWastePercentage: currentWastePercentage.toString(),
+        calculatedSavings: monthlySavings.toString(),
+        industry,
+      });
+
+      res.json({
+        monthlySavings: Math.round(monthlySavings),
+        annualSavings: Math.round(annualSavings),
+        wasteReduction: Math.round(wasteReduction),
+        profitIncrease: Math.round(profitIncrease * 100) / 100,
+        submissionId: submission.id,
+      });
+    } catch (error) {
+      console.error("Error calculating savings:", error);
+      res.status(500).json({ error: "Failed to calculate savings" });
+    }
+  });
+
+  // Supplier Marketplace routes
+  app.get("/api/suppliers/marketplace", isAuthenticated, async (req, res) => {
+    try {
+      const suppliers = await storage.getSupplierMarketplace();
+      res.json(suppliers);
+    } catch (error) {
+      console.error("Error fetching supplier marketplace:", error);
+      res.status(500).json({ error: "Failed to fetch supplier marketplace" });
+    }
+  });
+
+  app.post("/api/suppliers/marketplace", isAuthenticated, async (req, res) => {
+    try {
+      const marketplaceData = req.body;
+      const marketplace = await storage.createSupplierMarketplace(marketplaceData);
+      res.json(marketplace);
+    } catch (error) {
+      console.error("Error creating supplier marketplace profile:", error);
+      res.status(500).json({ error: "Failed to create marketplace profile" });
+    }
+  });
+
+  // Supplier Price Comparison routes
+  app.get("/api/supplier-prices", isAuthenticated, async (req, res) => {
+    try {
+      const { productId } = req.query;
+      const prices = await storage.getSupplierPrices(productId ? parseInt(productId as string) : undefined);
+      res.json(prices);
+    } catch (error) {
+      console.error("Error fetching supplier prices:", error);
+      res.status(500).json({ error: "Failed to fetch supplier prices" });
+    }
+  });
+
+  app.post("/api/supplier-prices", isAuthenticated, async (req, res) => {
+    try {
+      const priceData = req.body;
+      const price = await storage.createSupplierPrice(priceData);
+      res.json(price);
+    } catch (error) {
+      console.error("Error creating supplier price:", error);
+      res.status(500).json({ error: "Failed to create supplier price" });
+    }
+  });
+
+  // Referral Program routes
+  app.get("/api/referrals", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const referrals = await storage.getReferrals(userId);
+      res.json(referrals);
+    } catch (error) {
+      console.error("Error fetching referrals:", error);
+      res.status(500).json({ error: "Failed to fetch referrals" });
+    }
+  });
+
+  app.post("/api/referrals", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const { refereeEmail } = req.body;
+      
+      // Generate unique referral code
+      const referralCode = `REF-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const referral = await storage.createReferral({
+        referrerId: userId,
+        refereeEmail,
+        referralCode,
+        rewardAmount: "50.00",
+        rewardType: "credit",
+      });
+
+      res.json(referral);
+    } catch (error) {
+      console.error("Error creating referral:", error);
+      res.status(500).json({ error: "Failed to create referral" });
+    }
+  });
+
+  app.get("/api/referrals/stats", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const stats = await storage.getReferralStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching referral stats:", error);
+      res.status(500).json({ error: "Failed to fetch referral stats" });
+    }
+  });
+
+  // Supplier Review routes
+  app.post("/api/supplier-reviews", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const reviewData = { ...req.body, reviewerId: userId };
+      const review = await storage.createSupplierReview(reviewData);
+      res.json(review);
+    } catch (error) {
+      console.error("Error creating supplier review:", error);
+      res.status(500).json({ error: "Failed to create supplier review" });
+    }
+  });
+
+  app.get("/api/supplier-reviews/:supplierId", isAuthenticated, async (req, res) => {
+    try {
+      const { supplierId } = req.params;
+      const reviews = await storage.getSupplierReviews(parseInt(supplierId));
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching supplier reviews:", error);
+      res.status(500).json({ error: "Failed to fetch supplier reviews" });
+    }
+  });
+
+  app.get("/api/user-reviews", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const reviews = await storage.getUserReviews(userId);
+      res.json(reviews);
+    } catch (error) {
+      console.error("Error fetching user reviews:", error);
+      res.status(500).json({ error: "Failed to fetch user reviews" });
+    }
+  });
+
+  // Automated Purchase Order routes
+  app.post("/api/purchase-orders/automated", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const orderData = { ...req.body, createdBy: userId };
+      const order = await storage.createAutomatedPurchaseOrder(orderData);
+      res.json(order);
+    } catch (error) {
+      console.error("Error creating automated purchase order:", error);
+      res.status(500).json({ error: "Failed to create automated purchase order" });
+    }
+  });
+
+  app.get("/api/purchase-orders/automated", isAuthenticated, async (req, res) => {
+    try {
+      const orders = await storage.getAutomatedPurchaseOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error("Error fetching automated purchase orders:", error);
+      res.status(500).json({ error: "Failed to fetch automated purchase orders" });
+    }
+  });
+
+  app.patch("/api/purchase-orders/:id/approve", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const order = await storage.approvePurchaseOrder(parseInt(id));
+      res.json(order);
+    } catch (error) {
+      console.error("Error approving purchase order:", error);
+      res.status(500).json({ error: "Failed to approve purchase order" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

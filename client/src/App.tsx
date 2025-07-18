@@ -17,6 +17,10 @@ import Users from "@/pages/users";
 import Achievements from "@/pages/achievements";
 import Spoilage from "@/pages/spoilage";
 import NotFound from "@/pages/not-found";
+import LeadMagnetCalculator from "@/pages/lead-magnet-calculator";
+import SupplierComparison from "@/pages/supplier-comparison";
+import SupplierMarketplace from "@/pages/supplier-marketplace";
+import AutomatedPurchaseOrders from "@/pages/automated-purchase-orders";
 import OnboardingTutorial from "@/components/onboarding/onboarding-tutorial";
 import FeedbackWidget from "@/components/feedback/feedback-widget";
 import AchievementNotification from "@/components/achievements/achievement-notification";
@@ -60,6 +64,10 @@ function Router() {
         <Route path="/achievements" component={Achievements} />
         <Route path="/spoilage" component={Spoilage} />
         <Route path="/onboarding" component={Onboarding} />
+        <Route path="/calculator" component={LeadMagnetCalculator} />
+        <Route path="/supplier-comparison" component={SupplierComparison} />
+        <Route path="/supplier-marketplace" component={SupplierMarketplace} />
+        <Route path="/automated-purchase-orders" component={AutomatedPurchaseOrders} />
         <Route component={NotFound} />
       </Switch>
       

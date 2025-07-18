@@ -46,6 +46,21 @@ import {
   type InsertCriticalAlert,
   type BatchJob,
   type InsertBatchJob,
+  leadMagnetSubmissions,
+  supplierMarketplace,
+  supplierPrices,
+  referrals,
+  supplierReviews,
+  type LeadMagnetSubmission,
+  type InsertLeadMagnetSubmission,
+  type SupplierMarketplace,
+  type InsertSupplierMarketplace,
+  type SupplierPrice,
+  type InsertSupplierPrice,
+  type Referral,
+  type InsertReferral,
+  type SupplierReview,
+  type InsertSupplierReview,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, asc } from "drizzle-orm";
@@ -807,6 +822,234 @@ export class DatabaseStorage implements IStorage {
       .where(eq(batchJobs.id, id))
       .returning();
     return failedJob;
+  }
+
+  // Lead magnet submissions
+  async createLeadMagnetSubmission(submission: InsertLeadMagnetSubmission): Promise<LeadMagnetSubmission> {
+    const [newSubmission] = await db
+      .insert(leadMagnetSubmissions)
+      .values(submission)
+      .returning();
+    return newSubmission;
+  }
+
+  async getLeadMagnetSubmissions(): Promise<LeadMagnetSubmission[]> {
+    return await db.select().from(leadMagnetSubmissions).orderBy(desc(leadMagnetSubmissions.createdAt));
+  }
+
+  async markLeadMagnetConverted(id: number): Promise<void> {
+    await db
+      .update(leadMagnetSubmissions)
+      .set({ convertedToTrial: true, convertedAt: new Date() })
+      .where(eq(leadMagnetSubmissions.id, id));
+  }
+
+  // Supplier marketplace
+  async createSupplierMarketplace(marketplace: InsertSupplierMarketplace): Promise<SupplierMarketplace> {
+    const [newMarketplace] = await db
+      .insert(supplierMarketplace)
+      .values(marketplace)
+      .returning();
+    return newMarketplace;
+  }
+
+  async getSupplierMarketplace(): Promise<(SupplierMarketplace & { supplier: Supplier })[]> {
+    return await db
+      .select()
+      .from(supplierMarketplace)
+      .leftJoin(suppliers, eq(supplierMarketplace.supplierId, suppliers.id))
+      .where(eq(supplierMarketplace.isActive, true));
+  }
+
+  async updateSupplierRating(supplierId: number, rating: number, totalReviews: number): Promise<void> {
+    await db
+      .update(supplierMarketplace)
+      .set({ rating: rating.toString(), totalReviews })
+      .where(eq(supplierMarketplace.supplierId, supplierId));
+  }
+
+  // Supplier prices
+  async createSupplierPrice(price: InsertSupplierPrice): Promise<SupplierPrice> {
+    const [newPrice] = await db
+      .insert(supplierPrices)
+      .values(price)
+      .returning();
+    return newPrice;
+  }
+
+  async getSupplierPrices(productId?: number): Promise<(SupplierPrice & { supplier: Supplier })[]> {
+    const query = db
+      .select()
+      .from(supplierPrices)
+      .leftJoin(suppliers, eq(supplierPrices.supplierId, suppliers.id))
+      .where(eq(supplierPrices.isActive, true));
+
+    if (productId) {
+      query.where(eq(supplierPrices.productId, productId));
+    }
+
+    return await query.orderBy(supplierPrices.unitPrice);
+  }
+
+  async updateSupplierPrice(id: number, price: Partial<SupplierPrice>): Promise<SupplierPrice> {
+    const [updatedPrice] = await db
+      .update(supplierPrices)
+      .set({ ...price, lastUpdated: new Date() })
+      .where(eq(supplierPrices.id, id))
+      .returning();
+    return updatedPrice;
+  }
+
+  // Referrals
+  async createReferral(referral: InsertReferral): Promise<Referral> {
+    const [newReferral] = await db
+      .insert(referrals)
+      .values(referral)
+      .returning();
+    return newReferral;
+  }
+
+  async getReferrals(userId: string): Promise<Referral[]> {
+    return await db
+      .select()
+      .from(referrals)
+      .where(eq(referrals.referrerId, userId))
+      .orderBy(desc(referrals.createdAt));
+  }
+
+  async convertReferral(referralCode: string, refereeId: string): Promise<Referral> {
+    const [convertedReferral] = await db
+      .update(referrals)
+      .set({
+        refereeId,
+        status: 'converted',
+        convertedAt: new Date(),
+      })
+      .where(eq(referrals.referralCode, referralCode))
+      .returning();
+    return convertedReferral;
+  }
+
+  async getReferralStats(userId: string): Promise<{
+    totalReferrals: number;
+    pendingReferrals: number;
+    convertedReferrals: number;
+    totalRewards: number;
+    pendingRewards: number;
+    conversionRate: number;
+  }> {
+    const referralsList = await this.getReferrals(userId);
+    const totalReferrals = referralsList.length;
+    const pendingReferrals = referralsList.filter(r => r.status === 'pending').length;
+    const convertedReferrals = referralsList.filter(r => r.status === 'converted').length;
+    const totalRewards = referralsList
+      .filter(r => r.status === 'converted')
+      .reduce((sum, r) => sum + parseFloat(r.rewardAmount || '0'), 0);
+    const pendingRewards = referralsList
+      .filter(r => r.status === 'pending')
+      .reduce((sum, r) => sum + parseFloat(r.rewardAmount || '50'), 0);
+    const conversionRate = totalReferrals > 0 ? Math.round((convertedReferrals / totalReferrals) * 100) : 0;
+
+    return {
+      totalReferrals,
+      pendingReferrals,
+      convertedReferrals,
+      totalRewards,
+      pendingRewards,
+      conversionRate,
+    };
+  }
+
+  // Supplier reviews
+  async createSupplierReview(review: InsertSupplierReview): Promise<SupplierReview> {
+    const [newReview] = await db
+      .insert(supplierReviews)
+      .values(review)
+      .returning();
+    
+    // Update supplier rating
+    await this.updateSupplierRatingFromReviews(review.supplierId);
+    
+    return newReview;
+  }
+
+  async getSupplierReviews(supplierId: number): Promise<SupplierReview[]> {
+    return await db
+      .select()
+      .from(supplierReviews)
+      .where(eq(supplierReviews.supplierId, supplierId))
+      .orderBy(desc(supplierReviews.createdAt));
+  }
+
+  async getUserReviews(userId: string): Promise<(SupplierReview & { supplier: Supplier })[]> {
+    return await db
+      .select()
+      .from(supplierReviews)
+      .leftJoin(suppliers, eq(supplierReviews.supplierId, suppliers.id))
+      .where(eq(supplierReviews.reviewerId, userId))
+      .orderBy(desc(supplierReviews.createdAt));
+  }
+
+  private async updateSupplierRatingFromReviews(supplierId: number): Promise<void> {
+    const reviews = await this.getSupplierReviews(supplierId);
+    if (reviews.length === 0) return;
+
+    const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+    await this.updateSupplierRating(supplierId, averageRating, reviews.length);
+  }
+
+  // Enhanced purchase order methods
+  async createAutomatedPurchaseOrder(data: {
+    supplierId: number;
+    productId: number;
+    quantity: number;
+    unitPrice: number;
+    organizationId: number;
+    createdBy: string;
+  }): Promise<PurchaseOrder> {
+    const orderNumber = `AUTO-${Date.now()}`;
+    const totalAmount = data.quantity * data.unitPrice;
+
+    const [newOrder] = await db
+      .insert(purchaseOrders)
+      .values({
+        supplierId: data.supplierId,
+        orderNumber,
+        status: 'draft',
+        totalAmount: totalAmount.toString(),
+        isAutoGenerated: true,
+        createdBy: data.createdBy,
+        organizationId: data.organizationId,
+      })
+      .returning();
+
+    // Add order items
+    await db.insert(purchaseOrderItems).values({
+      purchaseOrderId: newOrder.id,
+      productId: data.productId,
+      quantity: data.quantity.toString(),
+      unitPrice: data.unitPrice.toString(),
+      totalPrice: totalAmount.toString(),
+    });
+
+    return newOrder;
+  }
+
+  async getAutomatedPurchaseOrders(): Promise<PurchaseOrder[]> {
+    return await db
+      .select()
+      .from(purchaseOrders)
+      .where(eq(purchaseOrders.isAutoGenerated, true))
+      .orderBy(desc(purchaseOrders.createdAt));
+  }
+
+  async approvePurchaseOrder(id: number): Promise<PurchaseOrder> {
+    const [approvedOrder] = await db
+      .update(purchaseOrders)
+      .set({ status: 'approved', updatedAt: new Date() })
+      .where(eq(purchaseOrders.id, id))
+      .returning();
+    return approvedOrder;
   }
 }
 

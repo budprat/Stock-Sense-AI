@@ -576,6 +576,86 @@ export type InsertCriticalAlert = typeof criticalAlerts.$inferInsert;
 export type BatchJob = typeof batchJobs.$inferSelect;
 export type InsertBatchJob = typeof batchJobs.$inferInsert;
 
+// Lead magnet calculator submissions
+export const leadMagnetSubmissions = pgTable("lead_magnet_submissions", {
+  id: serial("id").primaryKey(),
+  email: varchar("email", { length: 255 }).notNull(),
+  businessName: varchar("business_name", { length: 255 }),
+  monthlyInventoryValue: decimal("monthly_inventory_value", { precision: 10, scale: 2 }),
+  currentWastePercentage: decimal("current_waste_percentage", { precision: 5, scale: 2 }),
+  calculatedSavings: decimal("calculated_savings", { precision: 10, scale: 2 }),
+  industry: varchar("industry", { length: 100 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  convertedToTrial: boolean("converted_to_trial").default(false),
+  convertedAt: timestamp("converted_at"),
+});
+
+// Supplier marketplace profiles
+export const supplierMarketplace = pgTable("supplier_marketplace", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").references(() => suppliers.id),
+  isVerified: boolean("is_verified").default(false),
+  rating: decimal("rating", { precision: 3, scale: 2 }).default("0.00"),
+  totalReviews: integer("total_reviews").default(0),
+  joinDate: timestamp("join_date").defaultNow(),
+  description: text("description"),
+  specialties: text("specialties").array(),
+  certifications: text("certifications").array(),
+  minimumOrderAmount: decimal("minimum_order_amount", { precision: 10, scale: 2 }),
+  paymentTerms: varchar("payment_terms", { length: 100 }),
+  shippingZones: text("shipping_zones").array(),
+  isActive: boolean("is_active").default(true),
+});
+
+// Supplier price comparisons
+export const supplierPrices = pgTable("supplier_prices", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").references(() => suppliers.id),
+  productId: integer("product_id").references(() => products.id),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  minimumQuantity: decimal("minimum_quantity", { precision: 10, scale: 2 }).default("1.00"),
+  maximumQuantity: decimal("maximum_quantity", { precision: 10, scale: 2 }),
+  leadTimeDays: integer("lead_time_days").default(1),
+  isActive: boolean("is_active").default(true),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  validFrom: timestamp("valid_from").defaultNow(),
+  validTo: timestamp("valid_to"),
+});
+
+// Referral program
+export const referrals = pgTable("referrals", {
+  id: serial("id").primaryKey(),
+  referrerId: varchar("referrer_id").references(() => users.id),
+  refereeEmail: varchar("referee_email", { length: 255 }).notNull(),
+  refereeId: varchar("referee_id").references(() => users.id),
+  referralCode: varchar("referral_code", { length: 50 }).unique().notNull(),
+  status: varchar("status", { length: 50 }).notNull().default("pending"),
+  rewardAmount: decimal("reward_amount", { precision: 10, scale: 2 }),
+  rewardType: varchar("reward_type", { length: 50 }).default("credit"),
+  createdAt: timestamp("created_at").defaultNow(),
+  convertedAt: timestamp("converted_at"),
+  rewardPaidAt: timestamp("reward_paid_at"),
+});
+
+// Supplier reviews
+export const supplierReviews = pgTable("supplier_reviews", {
+  id: serial("id").primaryKey(),
+  supplierId: integer("supplier_id").references(() => suppliers.id),
+  reviewerId: varchar("reviewer_id").references(() => users.id),
+  rating: integer("rating").notNull(), // 1-5 stars
+  title: varchar("title", { length: 255 }),
+  review: text("review"),
+  orderQuality: integer("order_quality"), // 1-5
+  deliverySpeed: integer("delivery_speed"), // 1-5
+  customerService: integer("customer_service"), // 1-5
+  valueForMoney: integer("value_for_money"), // 1-5
+  wouldRecommend: boolean("would_recommend").default(true),
+  isVerified: boolean("is_verified").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schemas
 export const insertStorageConditionSchema = createInsertSchema(storageConditions).omit({
   id: true,
   recordedAt: true,
@@ -592,3 +672,42 @@ export const insertBatchJobSchema = createInsertSchema(batchJobs).omit({
   createdAt: true,
   updatedAt: true,
 });
+
+export const insertLeadMagnetSubmissionSchema = createInsertSchema(leadMagnetSubmissions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSupplierMarketplaceSchema = createInsertSchema(supplierMarketplace).omit({
+  id: true,
+  joinDate: true,
+});
+
+export const insertSupplierPriceSchema = createInsertSchema(supplierPrices).omit({
+  id: true,
+  lastUpdated: true,
+  validFrom: true,
+});
+
+export const insertReferralSchema = createInsertSchema(referrals).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSupplierReviewSchema = createInsertSchema(supplierReviews).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// New types
+export type LeadMagnetSubmission = typeof leadMagnetSubmissions.$inferSelect;
+export type InsertLeadMagnetSubmission = z.infer<typeof insertLeadMagnetSubmissionSchema>;
+export type SupplierMarketplace = typeof supplierMarketplace.$inferSelect;
+export type InsertSupplierMarketplace = z.infer<typeof insertSupplierMarketplaceSchema>;
+export type SupplierPrice = typeof supplierPrices.$inferSelect;
+export type InsertSupplierPrice = z.infer<typeof insertSupplierPriceSchema>;
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = z.infer<typeof insertReferralSchema>;
+export type SupplierReview = typeof supplierReviews.$inferSelect;
+export type InsertSupplierReview = z.infer<typeof insertSupplierReviewSchema>;
