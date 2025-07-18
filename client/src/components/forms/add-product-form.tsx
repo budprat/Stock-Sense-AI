@@ -207,16 +207,20 @@ export default function AddProductForm({ onSuccess, trigger }: AddProductFormPro
         <div className="space-y-4">
           {/* Quick Actions */}
           <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleBarcodeSccan}
-              className="flex items-center"
-            >
-              <Scan className="w-4 h-4 mr-2" />
-              Scan Barcode
-            </Button>
+            <BarcodeScanner 
+              onScan={handleBarcodeScanned}
+              trigger={
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center"
+                >
+                  <Scan className="w-4 h-4 mr-2" />
+                  Scan Barcode
+                </Button>
+              }
+            />
             <Button
               type="button"
               variant="outline"
