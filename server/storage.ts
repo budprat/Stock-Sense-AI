@@ -156,6 +156,32 @@ export interface IStorage {
   startBatchJob(id: number): Promise<BatchJob>;
   completeBatchJob(id: number, results: any): Promise<BatchJob>;
   failBatchJob(id: number, errors: string[]): Promise<BatchJob>;
+
+  // New marketplace features
+  createLeadMagnetSubmission(submission: InsertLeadMagnetSubmission): Promise<LeadMagnetSubmission>;
+  getLeadMagnetSubmissions(): Promise<LeadMagnetSubmission[]>;
+  markLeadMagnetConverted(id: number): Promise<void>;
+  
+  createSupplierMarketplace(marketplace: InsertSupplierMarketplace): Promise<SupplierMarketplace>;
+  getSupplierMarketplace(): Promise<any[]>;
+  updateSupplierRating(supplierId: number, rating: number, totalReviews: number): Promise<void>;
+  
+  createSupplierPrice(price: InsertSupplierPrice): Promise<SupplierPrice>;
+  getSupplierPrices(productId?: number): Promise<any[]>;
+  updateSupplierPrice(id: number, price: Partial<SupplierPrice>): Promise<SupplierPrice>;
+  
+  createReferral(referral: InsertReferral): Promise<Referral>;
+  getReferrals(userId: string): Promise<Referral[]>;
+  getReferralStats(userId: string): Promise<any>;
+  convertReferral(referralCode: string, refereeId: string): Promise<Referral>;
+  
+  createSupplierReview(review: InsertSupplierReview): Promise<SupplierReview>;
+  getSupplierReviews(supplierId: number): Promise<SupplierReview[]>;
+  getUserReviews(userId: string): Promise<SupplierReview[]>;
+  
+  createAutomatedPurchaseOrder(order: any): Promise<any>;
+  getAutomatedPurchaseOrders(): Promise<any[]>;
+  approvePurchaseOrder(id: number): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {

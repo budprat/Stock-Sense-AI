@@ -24,7 +24,8 @@ import {
   Mail,
   Award,
   Percent,
-  Target
+  Target,
+  AlertCircle
 } from "lucide-react";
 
 export default function SupplierMarketplace() {
@@ -45,17 +46,77 @@ export default function SupplierMarketplace() {
     refereeEmail: "",
   });
 
-  const { data: suppliers, isLoading } = useQuery({
+  const { data: suppliers, isLoading, error } = useQuery({
     queryKey: ["/api/suppliers/marketplace"],
+    retry: 1,
   });
 
   const { data: referrals } = useQuery({
     queryKey: ["/api/referrals"],
+    retry: 1,
   });
 
   const { data: userStats } = useQuery({
     queryKey: ["/api/referrals/stats"],
+    retry: 1,
   });
+
+  // Sample data for demo purposes when API fails
+  const sampleSuppliers = [
+    {
+      id: 1,
+      name: "FreshCorp Produce",
+      category: "Produce",
+      rating: 4.8,
+      totalReviews: 245,
+      verified: true,
+      location: "California, USA",
+      specialties: ["Organic", "Local", "Seasonal"],
+      description: "Premium organic produce supplier with 15+ years experience",
+      discount: 15,
+      deliveryTime: "2-3 days",
+      minimumOrder: 500,
+      contactEmail: "orders@freshcorp.com",
+      phone: "(555) 123-4567",
+      isActive: true,
+    },
+    {
+      id: 2,
+      name: "Ocean Fresh Seafood",
+      category: "Seafood",
+      rating: 4.9,
+      totalReviews: 189,
+      verified: true,
+      location: "Maine, USA",
+      specialties: ["Sustainable", "Wild-caught", "Fresh"],
+      description: "Sustainable seafood direct from coastal fishermen",
+      discount: 12,
+      deliveryTime: "1-2 days",
+      minimumOrder: 300,
+      contactEmail: "sales@oceanfresh.com",
+      phone: "(555) 987-6543",
+      isActive: true,
+    },
+    {
+      id: 3,
+      name: "Artisan Bakery Supplies",
+      category: "Baking",
+      rating: 4.7,
+      totalReviews: 156,
+      verified: true,
+      location: "New York, USA",
+      specialties: ["Artisan", "Premium", "Organic"],
+      description: "High-quality baking ingredients and specialty items",
+      discount: 10,
+      deliveryTime: "3-4 days",
+      minimumOrder: 200,
+      contactEmail: "info@artisanbaking.com",
+      phone: "(555) 456-7890",
+      isActive: true,
+    },
+  ];
+
+  const displaySuppliers = suppliers || sampleSuppliers;
 
   const submitReview = useMutation({
     mutationFn: async (data: any) => {
@@ -103,6 +164,19 @@ export default function SupplierMarketplace() {
     submitReferral.mutate(referralForm);
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading supplier marketplace...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
@@ -112,6 +186,14 @@ export default function SupplierMarketplace() {
         <p className="text-gray-600 dark:text-gray-300">
           Discover verified suppliers and earn rewards through referrals
         </p>
+        {error && (
+          <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+            <div className="flex items-center gap-2 text-orange-600">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">API unavailable - showing demo data</span>
+            </div>
+          </div>
+        )}
       </div>
 
       <Tabs defaultValue="marketplace" className="space-y-6">
@@ -123,12 +205,12 @@ export default function SupplierMarketplace() {
 
         <TabsContent value="marketplace" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {suppliers?.map((supplier: any) => (
+            {displaySuppliers?.map((supplier: any) => (
               <Card key={supplier.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      {supplier.isVerified && (
+                      {supplier.verified && (
                         <Shield className="h-4 w-4 text-green-600" />
                       )}
                       {supplier.name}
@@ -153,11 +235,11 @@ export default function SupplierMarketplace() {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <DollarSign className="h-4 w-4" />
-                        Min Order: ${supplier.minimumOrderAmount}
+                        Min Order: ${supplier.minimumOrder}
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <CheckCircle className="h-4 w-4" />
-                        Payment: {supplier.paymentTerms}
+                        Delivery: {supplier.deliveryTime}
                       </div>
                     </div>
                     
