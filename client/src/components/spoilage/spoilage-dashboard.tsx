@@ -34,6 +34,10 @@ export default function SpoilageDashboard() {
   const spoilageStats = useSpoilageStats();
   const alerts = useSpoilageAlerts();
 
+  // Debug logs
+  console.log('SpoilageDashboard - risks:', risks, 'isLoading:', risksLoading);
+  console.log('SpoilageDashboard - predictions:', predictions, 'isLoading:', predictionsLoading);
+
   const getRiskColor = (risk: string) => {
     switch (risk) {
       case 'critical': return 'bg-red-500';
@@ -188,7 +192,7 @@ export default function SpoilageDashboard() {
                   </div>
                 ) : (
                   <>
-                    {risks && Array.isArray(risks) && risks.map((risk: SpoilageRisk) => (
+                    {risks && Array.isArray(risks) && risks.length > 0 && risks.map((risk: SpoilageRisk) => (
                       <div 
                         key={risk.productId}
                         className={`p-4 rounded-lg border cursor-pointer transition-all ${
@@ -236,7 +240,7 @@ export default function SpoilageDashboard() {
                       </div>
                     ))}
                     
-                    {risks?.length === 0 && (
+                    {(!risks || risks.length === 0) && (
                       <div className="text-center py-8 text-muted-foreground">
                         No spoilage risks detected
                       </div>
@@ -358,7 +362,7 @@ export default function SpoilageDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {predictions && Array.isArray(predictions) && predictions.map((prediction: SpoilagePrediction, index: number) => (
+                  {predictions && Array.isArray(predictions) && predictions.length > 0 && predictions.map((prediction: SpoilagePrediction, index: number) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -401,7 +405,7 @@ export default function SpoilageDashboard() {
                     </div>
                   ))}
 
-                  {predictions?.length === 0 && (
+                  {(!predictions || predictions.length === 0) && (
                     <div className="text-center py-8 text-muted-foreground">
                       No predictions available
                     </div>
