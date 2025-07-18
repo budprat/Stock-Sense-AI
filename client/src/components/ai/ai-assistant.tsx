@@ -212,7 +212,7 @@ export default function AIAssistant() {
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="fixed bottom-6 left-24 z-50"
+        className="fixed bottom-6 left-32 z-50"
       >
         <Button
           onClick={() => setIsExpanded(true)}
@@ -248,7 +248,7 @@ export default function AIAssistant() {
       initial={{ opacity: 0, y: 20, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.9 }}
-      className="fixed bottom-6 left-24 z-50 w-96 max-w-[90vw]"
+      className="fixed bottom-6 left-32 z-50 w-96 max-w-[90vw]"
     >
       <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
         <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg">
