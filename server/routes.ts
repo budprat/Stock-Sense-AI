@@ -52,14 +52,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize demo data
   app.post("/api/init-demo", async (req, res) => {
     try {
+      // Check if demo data already exists
+      const existingProducts = await storage.getProducts(parseInt(MOCK_USER_ID));
+      if (existingProducts.length > 0) {
+        return res.json({ success: true, message: "Demo data already exists" });
+      }
+
       // Create demo user with proper ID
-      await storage.createUser({
-        id: "1",
-        email: "demo@stocksense.com",
-        firstName: "John",
-        lastName: "Martinez",
-        businessType: "restaurant",
-      });
+      const existingUser = await storage.getUser(MOCK_USER_ID);
+      if (!existingUser) {
+        await storage.createUser({
+          id: "1",
+          email: "demo@stocksense.com",
+          firstName: "John",
+          lastName: "Martinez",
+          businessType: "restaurant",
+        });
+      }
 
       // Create demo products and inventory
       const products = [
@@ -128,10 +137,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.createInventoryItem(inventoryData);
       }
 
-      // Create AI recommendations
+      // Get created products to use their actual IDs
+      const createdProducts = await storage.getProducts(parseInt(MOCK_USER_ID));
+      const productMap = new Map(createdProducts.map(p => [p.name, p.id]));
+
+      // Create AI recommendations with actual product IDs
       const recommendations = [
         {
-          productId: 1, // Fresh Tomatoes
+          productId: productMap.get("Fresh Tomatoes") || 1,
           type: "reorder",
           priority: "high",
           message: "Current stock will last 2 days. Recommended order: 50 lbs",
@@ -141,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: MOCK_USER_ID,
         },
         {
-          productId: 2, // Olive Oil
+          productId: productMap.get("Extra Virgin Olive Oil") || 2,
           type: "promotion",
           priority: "medium",
           message: "12 bottles expiring in 5 days. Suggest 15% discount promotion",
@@ -151,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           userId: MOCK_USER_ID,
         },
         {
-          productId: 3, // Bread Flour
+          productId: productMap.get("Bread Flour") || 3,
           type: "emergency",
           priority: "critical",
           message: "Out of stock. Peak demand detected. Emergency supplier suggested",
@@ -464,6 +477,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error connecting POS:", error);
       res.status(500).json({ message: "Failed to connect POS system" });
+    }
+  });
+
+  // Product routes
+  app.get('/api/products', async (req, res) => {
+    try {
+      const products = await storage.getProducts(parseInt(MOCK_USER_ID));
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  app.get('/api/products/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const product = await storage.getProduct(parseInt(id), parseInt(MOCK_USER_ID));
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json(product);
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  app.post('/api/products', async (req, res) => {
+    try {
+      const productData = {
+        ...req.body,
+        userId: parseInt(MOCK_USER_ID),
+      };
+      
+      // Check if product with same name already exists
+      const existingProducts = await storage.getProducts(parseInt(MOCK_USER_ID));
+      const duplicate = existingProducts.find(p => p.name.toLowerCase() === productData.name.toLowerCase());
+      if (duplicate) {
+        return res.status(400).json({ message: "Product with this name already exists" });
+      }
+      
+      const product = await storage.createProduct(productData);
+      
+      // Create initial inventory for the product
+      if (req.body.currentStock !== undefined || req.body.reorderPoint !== undefined) {
+        await storage.createInventoryItem({
+          productId: product.id,
+          userId: parseInt(MOCK_USER_ID),
+          currentStock: req.body.currentStock?.toString() || "0",
+          reorderPoint: req.body.reorderPoint?.toString() || "10",
+          maxStock: req.body.maxStock?.toString() || "100",
+          lastRestocked: new Date(),
+          expirationDate: product.isPerishable && product.shelfLifeDays ? 
+            new Date(Date.now() + product.shelfLifeDays * 24 * 60 * 60 * 1000) : null,
+        });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  app.put('/api/products/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const productData = {
+        ...req.body,
+        userId: parseInt(MOCK_USER_ID),
+      };
+      
+      const updatedProduct = await storage.updateProduct(parseInt(id), productData);
+      if (!updatedProduct) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      res.json(updatedProduct);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  app.delete('/api/products/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // First delete related inventory records
+      await storage.deleteInventoryByProductId(parseInt(id), parseInt(MOCK_USER_ID));
+      
+      // Then delete the product
+      const deleted = await storage.deleteProduct(parseInt(id), parseInt(MOCK_USER_ID));
+      if (!deleted) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ message: "Failed to delete product" });
     }
   });
 

@@ -84,6 +84,7 @@ export interface IStorage {
   getInventoryByProduct(userId: number, productId: number): Promise<Inventory | undefined>;
   createInventoryItem(item: InsertInventory & { userId: number }): Promise<Inventory>;
   updateInventoryItem(productId: number, item: Partial<InsertInventory>, userId: number): Promise<Inventory | undefined>;
+  deleteInventoryByProductId(productId: number, userId: number): Promise<boolean>;
 
   // Supplier operations
   getSuppliers(userId: number): Promise<Supplier[]>;
@@ -305,6 +306,13 @@ export class DatabaseStorage implements IStorage {
       .from(inventory)
       .where(and(eq(inventory.userId, userId), eq(inventory.productId, productId)));
     return item;
+  }
+
+  async deleteInventoryByProductId(productId: number, userId: number): Promise<boolean> {
+    const result = await db
+      .delete(inventory)
+      .where(and(eq(inventory.productId, productId), eq(inventory.userId, userId)));
+    return (result.rowCount || 0) > 0;
   }
 
   async getSuppliers(userId: number): Promise<Supplier[]> {
