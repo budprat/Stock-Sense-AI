@@ -188,7 +188,7 @@ export default function SpoilageDashboard() {
                   </div>
                 ) : (
                   <>
-                    {risks?.map((risk: SpoilageRisk) => (
+                    {risks && Array.isArray(risks) && risks.map((risk: SpoilageRisk) => (
                       <div 
                         key={risk.productId}
                         className={`p-4 rounded-lg border cursor-pointer transition-all ${
@@ -358,17 +358,17 @@ export default function SpoilageDashboard() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {predictions?.map((prediction: SpoilagePrediction, index: number) => (
+                  {predictions && Array.isArray(predictions) && predictions.map((prediction: SpoilagePrediction, index: number) => (
                     <div key={index} className="p-4 border rounded-lg">
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h4 className="font-semibold">Product ID: {prediction.productId}</h4>
                           <p className="text-sm text-muted-foreground">
-                            Predicted spoilage: {formatDate(prediction.predictedSpoilageDate)}
+                            Predicted spoilage: {prediction.predictedSpoilageDate ? formatDate(prediction.predictedSpoilageDate) : 'Not available'}
                           </p>
                         </div>
                         <Badge variant="outline">
-                          {Math.round(prediction.confidence * 100)}% confidence
+                          {prediction.confidence ? Math.round(prediction.confidence * 100) : 0}% confidence
                         </Badge>
                       </div>
 
