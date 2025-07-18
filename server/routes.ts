@@ -141,42 +141,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const createdProducts = await storage.getProducts(parseInt(MOCK_USER_ID));
       const productMap = new Map(createdProducts.map(p => [p.name, p.id]));
 
-      // Create AI recommendations with actual product IDs
-      const recommendations = [
-        {
-          productId: productMap.get("Fresh Tomatoes") || 1,
-          type: "reorder",
-          priority: "high",
-          message: "Current stock will last 2 days. Recommended order: 50 lbs",
-          confidence: "0.87",
-          recommendedAction: "Order Now",
-          quantityRecommended: "50",
-          userId: MOCK_USER_ID,
-        },
-        {
-          productId: productMap.get("Extra Virgin Olive Oil") || 2,
-          type: "promotion",
-          priority: "medium",
-          message: "12 bottles expiring in 5 days. Suggest 15% discount promotion",
-          confidence: "0.73",
-          recommendedAction: "Create Promo",
-          quantityRecommended: "12",
-          userId: MOCK_USER_ID,
-        },
-        {
-          productId: productMap.get("Bread Flour") || 3,
-          type: "emergency",
-          priority: "critical",
-          message: "Out of stock. Peak demand detected. Emergency supplier suggested",
-          confidence: "0.95",
-          recommendedAction: "Emergency Order",
-          quantityRecommended: "100",
-          userId: MOCK_USER_ID,
-        },
-      ];
+      // Check if AI recommendations already exist
+      const existingRecommendations = await storage.getAIRecommendations(parseInt(MOCK_USER_ID));
+      
+      if (existingRecommendations.length === 0) {
+        // Create AI recommendations with actual product IDs only if none exist
+        const recommendations = [
+          {
+            productId: productMap.get("Fresh Tomatoes") || 1,
+            type: "reorder",
+            priority: "high",
+            message: "Current stock will last 2 days. Recommended order: 50 lbs",
+            confidence: "0.87",
+            recommendedAction: "Order Now",
+            quantityRecommended: "50",
+            userId: MOCK_USER_ID,
+          },
+          {
+            productId: productMap.get("Extra Virgin Olive Oil") || 2,
+            type: "promotion",
+            priority: "medium",
+            message: "12 bottles expiring in 5 days. Suggest 15% discount promotion",
+            confidence: "0.73",
+            recommendedAction: "Create Promo",
+            quantityRecommended: "12",
+            userId: MOCK_USER_ID,
+          },
+          {
+            productId: productMap.get("Bread Flour") || 3,
+            type: "emergency",
+            priority: "critical",
+            message: "Out of stock. Peak demand detected. Emergency supplier suggested",
+            confidence: "0.95",
+            recommendedAction: "Emergency Order",
+            quantityRecommended: "100",
+            userId: MOCK_USER_ID,
+          },
+        ];
 
-      for (const rec of recommendations) {
-        await storage.createAIRecommendation(rec);
+        for (const rec of recommendations) {
+          await storage.createAIRecommendation(rec);
+        }
       }
 
       res.json({ success: true });
