@@ -45,11 +45,14 @@ export default function NotificationCenter() {
 
   const { data: notifications, isLoading } = useQuery({
     queryKey: ["/api/notifications"],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 60000, // Refresh every 60 seconds
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
   const { data: notificationStats } = useQuery({
     queryKey: ["/api/notifications/stats"],
+    refetchInterval: 60000, // Refresh every 60 seconds
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
   const markAsRead = useMutation({

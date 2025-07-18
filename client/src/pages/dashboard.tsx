@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import Header from "@/components/layout/header";
@@ -18,17 +18,23 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
 export default function Dashboard() {
-  // Initialize demo data on first load
+  const [demoInitialized, setDemoInitialized] = useState(false);
+  
+  // Initialize demo data on first load only
   useEffect(() => {
+    if (demoInitialized) return;
+    
     const initDemo = async () => {
       try {
         await apiRequest("POST", "/api/init-demo");
+        setDemoInitialized(true);
       } catch (error) {
         console.log("Demo data might already exist");
+        setDemoInitialized(true);
       }
     };
     initDemo();
-  }, []);
+  }, [demoInitialized]);
 
   return (
     <div className="min-h-screen bg-background">
