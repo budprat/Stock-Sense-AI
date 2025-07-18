@@ -6,6 +6,7 @@ import { z } from "zod";
 import { aiAssistant } from "./ai-assistant";
 import { db } from "./db";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { demoCleanupService } from "./demo-cleanup";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup Replit Auth middleware
@@ -1351,6 +1352,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: "Failed to disconnect supplier" });
     }
   });
+
+  // Demo cleanup endpoint (can be triggered manually)
+  app.post("/api/demo/cleanup", async (req, res) => {
+    try {
+      // Optional: Add a secret key to prevent unauthorized cleanup
+      const { secret } = req.body;
+      if (secret !== process.env.DEMO_CLEANUP_SECRET && process.env.DEMO_CLEANUP_SECRET) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      await demoCleanupService.performCleanup();
+      res.json({ success: true, message: "Demo cleanup completed" });
+    } catch (error) {
+      console.error("Error during demo cleanup:", error);
+      res.status(500).json({ error: "Failed to perform cleanup" });
+    }
+  });
+
+  // Schedule automatic cleanup every 8 hours
+  const EIGHT_HOURS = 8 * 60 * 60 * 1000;
+  
+  // Run initial cleanup on server start
+  setTimeout(() => {
+    console.log("[Demo Cleanup] Running initial cleanup...");
+    demoCleanupService.performCleanup().catch(console.error);
+  }, 5000); // Wait 5 seconds after server start
+  
+  // Schedule recurring cleanup every 8 hours
+  setInterval(() => {
+    console.log("[Demo Cleanup] Running scheduled cleanup...");
+    demoCleanupService.performCleanup().catch(console.error);
+  }, EIGHT_HOURS);
 
   const httpServer = createServer(app);
   return httpServer;

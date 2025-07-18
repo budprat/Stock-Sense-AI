@@ -7,6 +7,7 @@ StockSense is a modern AI-powered inventory management platform designed for sma
 The platform targets the $3.58B inventory management market with a focus on reducing 20-30% inventory waste through AI-driven demand forecasting, automated reordering, and spoilage prediction. Pricing strategy includes Free tier (1 location, 50 products), Professional tier ($49/month for 3 locations), and Enterprise tier ($99/month for unlimited locations), providing potential $5,000 monthly savings for customers. Positioning focuses on simplicity: "End Your Inventory Nightmare in 5 Minutes" with emphasis on ease-of-use for non-technical users aged 25-70.
 
 **Recent Major Updates (January 2025):**
+- **Demo Data Protection (January 17, 2025):** Implemented automatic cleanup system that runs every 8 hours to delete old sessions, reset demo inventory, and clean up test data to protect database costs when sharing publicly
 - Advanced analytics dashboard with demand forecasting, ABC analysis, and predictive modeling
 - Custom reporting system with scheduled reports and export capabilities (PDF, Excel, CSV)
 - Multi-location support with location-specific inventory tracking
