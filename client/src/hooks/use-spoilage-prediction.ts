@@ -77,7 +77,7 @@ export function useUpdateStorageConditions() {
 export function useSpoilageStats() {
   const { data: risks } = useSpoilageRisks();
   
-  if (!risks) return null;
+  if (!risks || !Array.isArray(risks)) return null;
 
   const criticalItems = risks.filter((risk: SpoilageRisk) => risk.spoilageRisk === 'critical');
   const highRiskItems = risks.filter((risk: SpoilageRisk) => risk.spoilageRisk === 'high');
@@ -89,7 +89,7 @@ export function useSpoilageStats() {
     : 0;
 
   const averageRiskScore = risks.length > 0
-    ? risks.reduce((acc: number, risk: SpoilageRisk) => acc + risk.riskScore, 0) / risks.length
+    ? risks.reduce((acc: number, risk: SpoilageRisk) => acc + (risk.riskScore || 0), 0) / risks.length
     : 0;
 
   return {
@@ -108,7 +108,7 @@ export function useSpoilageStats() {
 export function useSpoilageAlerts() {
   const { data: risks } = useSpoilageRisks();
   
-  if (!risks) return [];
+  if (!risks || !Array.isArray(risks)) return [];
 
   const alerts = [];
   
@@ -135,7 +135,7 @@ export function useSpoilageAlerts() {
   }
 
   // High waste risk items
-  const highWasteRisk = risks.filter((risk: SpoilageRisk) => risk.factors.historicalWaste > 0.7);
+  const highWasteRisk = risks.filter((risk: SpoilageRisk) => risk.factors && risk.factors.historicalWaste && risk.factors.historicalWaste > 0.7);
   if (highWasteRisk.length > 0) {
     alerts.push({
       type: 'info',
