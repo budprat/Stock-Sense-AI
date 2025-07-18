@@ -30,8 +30,8 @@ export default function AchievementDashboard() {
     queryFn: () => apiRequest("GET", `/api/achievements/stats/${MOCK_USER_ID}`),
   });
 
-  const recentAchievements = achievements?.filter((a: AchievementWithProgress) => a.isCompleted).slice(0, 3) || [];
-  const inProgressAchievements = achievements?.filter((a: AchievementWithProgress) => !a.isCompleted && a.progress > 0).slice(0, 3) || [];
+  const recentAchievements = Array.isArray(achievements) ? achievements.filter((a: AchievementWithProgress) => a.isCompleted).slice(0, 3) : [];
+  const inProgressAchievements = Array.isArray(achievements) ? achievements.filter((a: AchievementWithProgress) => !a.isCompleted && a.progress > 0).slice(0, 3) : [];
 
   return (
     <div className="space-y-6">

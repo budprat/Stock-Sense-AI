@@ -45,6 +45,7 @@ export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  createUser?(user: any): Promise<User>;
 
   // Product operations
   getProducts(userId: number): Promise<Product[]>;
@@ -130,6 +131,11 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  // Legacy createUser method for backward compatibility
+  async createUser(userData: any): Promise<User> {
+    return this.upsertUser(userData);
   }
 
   async getProducts(userId: number): Promise<Product[]> {
