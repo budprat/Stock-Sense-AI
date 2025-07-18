@@ -52,11 +52,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize demo data
   app.post("/api/init-demo", async (req, res) => {
     try {
-      // Create demo user
+      // Create demo user with proper ID
       await storage.createUser({
-        username: "demo",
+        id: "1",
         email: "demo@stocksense.com",
-        password: "demo123",
         firstName: "John",
         lastName: "Martinez",
         businessType: "restaurant",

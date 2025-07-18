@@ -173,13 +173,13 @@ export default function Achievements() {
     queryFn: () => apiRequest("GET", `/api/achievements/stats/${MOCK_USER_ID}`),
   });
 
-  const filteredAchievements = achievements?.filter((achievement: AchievementWithProgress) =>
+  const filteredAchievements = Array.isArray(achievements) ? achievements.filter((achievement: AchievementWithProgress) =>
     selectedCategory === "all" || achievement.category === selectedCategory
-  ) || [];
+  ) : [];
 
-  const completedAchievements = achievements?.filter((a: AchievementWithProgress) => a.isCompleted) || [];
-  const inProgressAchievements = achievements?.filter((a: AchievementWithProgress) => !a.isCompleted && a.progress > 0) || [];
-  const lockedAchievements = achievements?.filter((a: AchievementWithProgress) => !a.isCompleted && a.progress === 0) || [];
+  const completedAchievements = Array.isArray(achievements) ? achievements.filter((a: AchievementWithProgress) => a.isCompleted) : [];
+  const inProgressAchievements = Array.isArray(achievements) ? achievements.filter((a: AchievementWithProgress) => !a.isCompleted && a.progress > 0) : [];
+  const lockedAchievements = Array.isArray(achievements) ? achievements.filter((a: AchievementWithProgress) => !a.isCompleted && a.progress === 0) : [];
 
   const categories = [
     { id: "all", label: "All", icon: Trophy },
