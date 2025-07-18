@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Plus, Package, Scan, Camera, Upload } from "lucide-react";
+import BarcodeScanner from "@/components/barcode/barcode-scanner";
 
 const productSchema = z.object({
   name: z.string().min(2, "Product name must be at least 2 characters"),
@@ -124,28 +125,35 @@ export default function AddProductForm({ onSuccess, trigger }: AddProductFormPro
     createProductMutation.mutate(data);
   };
 
-  const handleBarcodeSccan = async () => {
-    // Simulated barcode scanning - in real app would use camera API
-    try {
-      const scannedData = {
-        sku: "TEST-" + Math.random().toString(36).substr(2, 9),
-        name: "Scanned Product",
-        description: "Product added via barcode scan",
-      };
+  const handleBarcodeScanned = (barcode: string, productData?: any) => {
+    if (productData) {
+      // Populate form with scanned product data
+      form.setValue("name", productData.name || "");
+      form.setValue("sku", productData.gtin || barcode);
+      form.setValue("description", productData.description || "");
+      form.setValue("costPrice", productData.price || 0);
+      form.setValue("sellingPrice", productData.price ? productData.price * 1.5 : 0);
       
-      form.setValue("sku", scannedData.sku);
-      form.setValue("name", scannedData.name);
-      form.setValue("description", scannedData.description);
+      // Set category based on product data
+      if (productData.category && categories) {
+        const matchingCategory = categories.find((cat: any) => 
+          cat.name.toLowerCase().includes(productData.category.toLowerCase())
+        );
+        if (matchingCategory) {
+          form.setValue("categoryId", matchingCategory.id.toString());
+        }
+      }
       
+      toast({
+        title: "Product Scanned Successfully! 📱",
+        description: `${productData.name} has been added to the form.`,
+      });
+    } else {
+      // Just set the barcode as SKU
+      form.setValue("sku", barcode);
       toast({
         title: "Barcode Scanned",
-        description: "Product information has been populated from barcode data.",
-      });
-    } catch (error) {
-      toast({
-        title: "Scan Failed",
-        description: "Unable to scan barcode. Please enter manually.",
-        variant: "destructive",
+        description: "Barcode has been set as SKU. Please fill in other details.",
       });
     }
   };

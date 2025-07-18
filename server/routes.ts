@@ -1013,6 +1013,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notification routes
+  app.get("/api/notifications", isAuthenticated, async (req, res) => {
+    try {
+      // Return sample notifications for now
+      const notifications = [
+        {
+          id: "1",
+          type: "critical",
+          title: "Critical Stock Alert",
+          message: "Fresh Tomatoes are critically low (5 units remaining)",
+          emoji: "🍅",
+          timestamp: new Date(Date.now() - 5 * 60 * 1000),
+          read: false,
+          actionable: true,
+          action: "Reorder Now",
+          actionUrl: "/inventory",
+          category: "alerts",
+          priority: "critical"
+        },
+        {
+          id: "2",
+          type: "warning",
+          title: "Items Expiring Soon",
+          message: "3 items will expire within 2 days",
+          emoji: "⏰",
+          timestamp: new Date(Date.now() - 15 * 60 * 1000),
+          read: false,
+          actionable: true,
+          action: "View Items",
+          actionUrl: "/spoilage",
+          category: "alerts",
+          priority: "high"
+        },
+        {
+          id: "3",
+          type: "success",
+          title: "Order Delivered",
+          message: "Your order from FreshCorp Produce has been delivered",
+          emoji: "📦",
+          timestamp: new Date(Date.now() - 60 * 60 * 1000),
+          read: true,
+          actionable: false,
+          category: "orders",
+          priority: "medium"
+        }
+      ];
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ error: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/stats", isAuthenticated, async (req, res) => {
+    try {
+      const stats = {
+        total: 5,
+        unread: 3,
+        critical: 1
+      };
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching notification stats:", error);
+      res.status(500).json({ error: "Failed to fetch notification stats" });
+    }
+  });
+
+  app.patch("/api/notifications/:id/read", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      // In a real app, you would update the notification in the database
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ error: "Failed to mark notification as read" });
+    }
+  });
+
+  app.patch("/api/notifications/mark-all-read", isAuthenticated, async (req, res) => {
+    try {
+      // In a real app, you would mark all notifications as read in the database
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ error: "Failed to mark all notifications as read" });
+    }
+  });
+
+  app.delete("/api/notifications/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      // In a real app, you would delete the notification from the database
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error dismissing notification:", error);
+      res.status(500).json({ error: "Failed to dismiss notification" });
+    }
+  });
+
+  // Supplier connection routes
+  app.post("/api/suppliers/connect", isAuthenticated, async (req, res) => {
+    try {
+      const { supplierId } = req.body;
+      const userId = req.user?.claims?.sub;
+      
+      // In a real app, you would create a connection record in the database
+      const connection = {
+        id: Date.now(),
+        userId,
+        supplierId,
+        status: "connected",
+        connectedAt: new Date(),
+        autoReorderEnabled: true,
+        specialPricing: true
+      };
+      
+      res.json(connection);
+    } catch (error) {
+      console.error("Error connecting supplier:", error);
+      res.status(500).json({ error: "Failed to connect supplier" });
+    }
+  });
+
+  app.post("/api/suppliers/:id/disconnect", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.claims?.sub;
+      
+      // In a real app, you would update the connection status in the database
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error disconnecting supplier:", error);
+      res.status(500).json({ error: "Failed to disconnect supplier" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

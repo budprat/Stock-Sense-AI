@@ -27,6 +27,7 @@ import {
   Target,
   AlertCircle
 } from "lucide-react";
+import OneClickConnector from "@/components/supplier/one-click-connector";
 
 export default function SupplierMarketplace() {
   const { toast } = useToast();
@@ -273,11 +274,22 @@ export default function SupplierMarketplace() {
                       >
                         View Details
                       </Button>
+                      <OneClickConnector 
+                        supplier={supplier} 
+                        isConnected={supplier.connected || false}
+                        onConnectionChange={(connected) => {
+                          // Update supplier connection status
+                          supplier.connected = connected;
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="mt-2">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button size="sm" className="flex-1">
+                          <Button size="sm" variant="outline" className="w-full">
                             <Star className="mr-2 h-4 w-4" />
-                            Review
+                            Write Review
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px]">
