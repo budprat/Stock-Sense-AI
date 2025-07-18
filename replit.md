@@ -4,7 +4,7 @@
 
 StockSense is a modern AI-powered inventory management platform designed for small retailers and restaurants (1-10 locations, $500K-$5M revenue). The application features a React-based frontend with a Node.js/Express backend, utilizing PostgreSQL for data storage and providing real-time inventory tracking, AI-powered recommendations, and comprehensive analytics.
 
-The platform targets the $3.58B inventory management market with a focus on reducing 20-30% inventory waste through AI-driven demand forecasting, automated reordering, and spoilage prediction. Target pricing is $99-$249/month with potential $5,000 monthly savings for customers.
+The platform targets the $3.58B inventory management market with a focus on reducing 20-30% inventory waste through AI-driven demand forecasting, automated reordering, and spoilage prediction. Target pricing is $49-$99/month core offering with $99 starter kit, providing potential $5,000 monthly savings for customers.
 
 **Recent Major Updates (January 2025):**
 - Advanced analytics dashboard with demand forecasting, ABC analysis, and predictive modeling
@@ -14,6 +14,9 @@ The platform targets the $3.58B inventory management market with a focus on redu
 - AI assistant integration with Gemini API for proactive inventory recommendations
 - Complete "Inventory Hero" achievement system with badges, points, and gamification
 - Replit Auth integration for secure user authentication and session management
+- **Pricing Strategy Update:** Implemented original $49-$99/month core offering with $99 starter kit model
+- **Lead Generation Features:** Added lead magnet calculator, supplier marketplace, and automated purchase orders
+- **Comprehensive Business Alignment:** Platform now matches original business plan with lead generation tools and value ladder implementation
 
 ## User Preferences
 

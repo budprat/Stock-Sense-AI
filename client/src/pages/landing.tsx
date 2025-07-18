@@ -120,45 +120,46 @@ const testimonials = [
 
 const pricingPlans = [
   {
-    name: "Starter",
+    name: "Starter Kit",
     price: "$99",
-    period: "per month",
-    description: "Perfect for single-location businesses",
+    period: "one-time",
+    description: "Complete setup package + 30-day trial",
     features: [
-      "Up to 1,000 products",
-      "Basic AI recommendations",
-      "Mobile app access",
-      "Email support",
-      "Standard reports"
+      "Complete platform setup",
+      "AI-powered demand forecasting",
+      "Automated reorder points",
+      "Spoilage prediction",
+      "Real-time inventory tracking",
+      "30-day free trial"
     ],
     popular: false
   },
   {
-    name: "Professional",
-    price: "$189",
+    name: "Core",
+    price: "$49",
     period: "per month",
-    description: "Ideal for growing businesses",
+    description: "Perfect for small restaurants and retailers",
     features: [
-      "Up to 5,000 products",
-      "Advanced AI analytics",
-      "Multi-location support",
-      "POS integrations",
-      "Priority support",
-      "Custom reports"
+      "Everything in Starter Kit",
+      "Mobile app access",
+      "Email support",
+      "Basic analytics",
+      "Supplier management",
+      "Monthly reports"
     ],
     popular: true
   },
   {
-    name: "Enterprise",
-    price: "$249",
+    name: "Professional",
+    price: "$99",
     period: "per month",
-    description: "For established multi-location operations",
+    description: "Ideal for growing businesses (3-5 locations)",
     features: [
-      "Unlimited products",
-      "Full AI optimization suite",
-      "Advanced integrations",
-      "Dedicated account manager",
-      "Custom training",
+      "Everything in Core",
+      "Multi-location management",
+      "Advanced analytics",
+      "Custom reporting",
+      "Priority support",
       "API access"
     ],
     popular: false
