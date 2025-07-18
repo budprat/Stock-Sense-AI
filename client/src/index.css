@@ -94,3 +94,62 @@
     text-wrap: balance;
   }
 }
+
+/* Large UI Mode for Accessibility */
+.large-ui button {
+  font-size: 1.25rem !important;
+  padding: 0.75rem 1.5rem !important;
+  min-height: 3.5rem !important;
+}
+
+.large-ui input,
+.large-ui select,
+.large-ui textarea {
+  font-size: 1.125rem !important;
+  padding: 0.75rem !important;
+  min-height: 3rem !important;
+}
+
+.large-ui h1 {
+  font-size: 2.5rem !important;
+}
+
+.large-ui h2 {
+  font-size: 2rem !important;
+}
+
+.large-ui h3 {
+  font-size: 1.75rem !important;
+}
+
+.large-ui p,
+.large-ui span,
+.large-ui div {
+  font-size: 1.125rem !important;
+  line-height: 1.75 !important;
+}
+
+.large-ui .text-sm {
+  font-size: 1rem !important;
+}
+
+.large-ui .text-xs {
+  font-size: 0.875rem !important;
+}
+
+/* High Contrast Mode */
+.high-contrast {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --muted: 0 0% 90%;
+  --muted-foreground: 0 0% 20%;
+  --border: 0 0% 40%;
+}
+
+.high-contrast .dark {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 80%;
+  --border: 0 0% 60%;
+}

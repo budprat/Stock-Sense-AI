@@ -236,6 +236,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Inventory Health Score
+  app.get("/api/inventory/health-score", async (req, res) => {
+    try {
+      const inventory = await storage.getInventory(MOCK_USER_ID);
+      
+      // Calculate metrics
+      let stockAccuracy = 85;
+      let wastageRate = 70;
+      let stockoutFrequency = 75;
+      let reorderEfficiency = 80;
+      
+      // Calculate based on actual data
+      const totalItems = inventory.length;
+      const lowStockItems = inventory.filter((item: any) => item.currentStock <= item.reorderPoint).length;
+      const outOfStockItems = inventory.filter((item: any) => item.currentStock === 0).length;
+      
+      stockoutFrequency = Math.max(0, 100 - (outOfStockItems / totalItems) * 100);
+      reorderEfficiency = Math.max(0, 100 - (lowStockItems / totalItems) * 50);
+      
+      // Overall score is weighted average
+      const overallScore = Math.round(
+        (stockAccuracy * 0.3) +
+        (wastageRate * 0.2) +
+        (stockoutFrequency * 0.3) +
+        (reorderEfficiency * 0.2)
+      );
+      
+      res.json({
+        stockAccuracy,
+        wastageRate,
+        stockoutFrequency,
+        reorderEfficiency,
+        overallScore
+      });
+    } catch (error) {
+      console.error("Error calculating health score:", error);
+      res.status(500).json({ error: "Failed to calculate health score" });
+    }
+  });
+
+  // Fix Actions
+  app.get("/api/inventory/fix-actions", async (req, res) => {
+    try {
+      const inventory = await storage.getInventory(MOCK_USER_ID);
+      const actions = [];
+      
+      // Find critical stock items
+      const criticalItems = inventory
+        .filter((item: any) => item.currentStock <= item.reorderPoint && item.currentStock > 0)
+        .slice(0, 3);
+      
+      criticalItems.forEach((item: any) => {
+        actions.push({
+          priority: item.currentStock <= 5 ? 'high' : 'medium',
+          action: `Reorder ${item.product.name} - Only ${item.currentStock} units left`,
+          impact: 'Prevent stockout and lost sales',
+          emoji: '📦'
+        });
+      });
+      
+      // Add waste reduction action
+      actions.push({
+        priority: 'medium',
+        action: 'Review expiring items and create promotions',
+        impact: 'Reduce waste by 15-20%',
+        emoji: '♻️'
+      });
+      
+      // Add optimization action
+      actions.push({
+        priority: 'low',
+        action: 'Update seasonal item reorder points',
+        impact: 'Optimize inventory levels',
+        emoji: '📊'
+      });
+      
+      res.json(actions.slice(0, 5));
+    } catch (error) {
+      console.error("Error generating fix actions:", error);
+      res.status(500).json({ error: "Failed to generate fix actions" });
+    }
+  });
+
   // Suppliers
   app.get("/api/suppliers", async (req, res) => {
     try {

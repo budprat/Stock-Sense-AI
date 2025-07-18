@@ -120,49 +120,56 @@ const testimonials = [
 
 const pricingPlans = [
   {
-    name: "Starter Kit",
-    price: "$99",
-    period: "one-time",
-    description: "Complete setup package + 30-day trial",
+    name: "Free",
+    price: "$0",
+    period: "forever",
+    description: "Try before you buy - no credit card required",
     features: [
-      "Complete platform setup",
-      "AI-powered demand forecasting",
-      "Automated reorder points",
-      "Spoilage prediction",
-      "Real-time inventory tracking",
-      "30-day free trial"
+      "1 location",
+      "Up to 50 products",
+      "Basic AI recommendations",
+      "Inventory tracking",
+      "Low stock alerts",
+      "Community support"
     ],
-    popular: false
-  },
-  {
-    name: "Core",
-    price: "$49",
-    period: "per month",
-    description: "Perfect for small restaurants and retailers",
-    features: [
-      "Everything in Starter Kit",
-      "Mobile app access",
-      "Email support",
-      "Basic analytics",
-      "Supplier management",
-      "Monthly reports"
-    ],
-    popular: true
+    popular: false,
+    cta: "Start Free"
   },
   {
     name: "Professional",
+    price: "$49",
+    period: "per month",
+    description: "Perfect for growing small retailers",
+    features: [
+      "3 locations",
+      "Unlimited products",
+      "Full AI predictions",
+      "Automated reordering",
+      "SMS daily summaries",
+      "Priority email support",
+      "Advanced analytics",
+      "Supplier marketplace"
+    ],
+    popular: true,
+    cta: "Start Free Trial"
+  },
+  {
+    name: "Enterprise",
     price: "$99",
     period: "per month",
-    description: "Ideal for growing businesses (3-5 locations)",
+    description: "For multi-location businesses",
     features: [
-      "Everything in Core",
-      "Multi-location management",
-      "Advanced analytics",
-      "Custom reporting",
-      "Priority support",
-      "API access"
+      "Unlimited locations",
+      "Everything in Professional",
+      "Custom integrations",
+      "Dedicated account manager",
+      "Phone support",
+      "API access",
+      "White-label options",
+      "Training included"
     ],
-    popular: false
+    popular: false,
+    cta: "Contact Sales"
   },
 ];
 
@@ -211,16 +218,16 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <Badge className="mb-4 bg-blue-100 text-blue-800">
-              Trusted by 1,000+ Small Businesses
+              From Spreadsheet Hell to AI Heaven™
             </Badge>
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Stop Wasting Money on
-              <span className="block text-primary">Inventory Management</span>
+              End Your Inventory Nightmare
+              <span className="block text-primary">in 5 Minutes</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              StockSense uses AI to tell you exactly <strong>what's about to run out</strong>, 
-              <strong> what's not moving</strong>, and <strong>what to order now</strong>. 
-              Reduce waste by 30% and save $5,000+ monthly.
+              Stock tracking <strong>so simple, your grandma could do it</strong>. 
+              AI tells you exactly what's low, what's expiring, and what to order. 
+              <span className="block mt-2 text-lg">Stop losing money to stockouts and theft - save $5,000+ monthly.</span>
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" onClick={handleGetStarted} className="px-8 py-4">
@@ -349,11 +356,16 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Simple, Transparent Pricing
+              Start Free, Scale As You Grow
             </h2>
             <p className="text-xl text-gray-600">
-              Choose the plan that fits your business size and needs
+              No credit card required. Upgrade when you're ready.
             </p>
+            <div className="mt-4">
+              <Badge variant="outline" className="text-sm">
+                💰 Save $5,000+ monthly with our AI-powered system
+              </Badge>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {pricingPlans.map((plan, index) => (
@@ -383,9 +395,15 @@ export default function Landing() {
                   <Button 
                     className="w-full" 
                     variant={plan.popular ? "default" : "outline"}
-                    onClick={() => setSelectedPlan(plan.name)}
+                    onClick={() => {
+                      if (plan.name === "Enterprise") {
+                        window.location.href = "mailto:sales@stocksense.app?subject=Enterprise%20Plan%20Inquiry";
+                      } else {
+                        handleGetStarted();
+                      }
+                    }}
                   >
-                    Get Started
+                    {plan.cta || "Get Started"}
                   </Button>
                 </CardContent>
               </Card>
@@ -398,21 +416,23 @@ export default function Landing() {
       <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Transform Your Inventory Management?
+            Stop Losing Money to Stockouts and Theft
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of successful small businesses using StockSense to reduce waste, 
-            optimize costs, and improve cash flow.
+            Set up in 5 minutes. See results in days. No credit card required.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" onClick={handleGetStarted} className="px-8 py-4">
-              Start Free Trial
+              Start Free Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button size="lg" variant="outline" className="px-8 py-4 text-white border-white hover:bg-white hover:text-blue-600">
-              Schedule Demo
+              Watch 2-Min Demo
             </Button>
           </div>
+          <p className="text-sm text-blue-100 mt-6">
+            🎉 Limited time: Get the $99 Starter Kit FREE with any paid plan
+          </p>
         </div>
       </section>
 

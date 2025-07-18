@@ -8,12 +8,14 @@ import CriticalAlerts from "@/components/dashboard/critical-alerts";
 import QuickStats from "@/components/dashboard/quick-stats";
 import AIRecommendations from "@/components/dashboard/ai-recommendations";
 import InventoryHealth from "@/components/dashboard/inventory-health";
+import InventoryHealthScore from "@/components/dashboard/inventory-health-score";
 import DemandForecast from "@/components/dashboard/demand-forecast";
 import WasteAnalysis from "@/components/dashboard/waste-analysis";
 import InventoryTable from "@/components/dashboard/inventory-table";
 import SupplierPerformance from "@/components/dashboard/supplier-performance";
 import AIAssistant from "@/components/ai/ai-assistant";
 import AchievementDashboard from "@/components/achievements/achievement-dashboard";
+import CompetitorImport from "@/components/import/competitor-import";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -49,24 +51,26 @@ export default function Dashboard() {
           <QuickStats />
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <InventoryHealthScore />
+            </div>
             <div className="lg:col-span-2" data-tour="ai-recommendations">
               <AIRecommendations />
             </div>
-            <div className="lg:col-span-1" data-tour="inventory-health">
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2" data-tour="inventory-health">
               <InventoryHealth />
+            </div>
+            <div className="lg:col-span-1">
+              <AchievementDashboard />
             </div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            <div className="lg:col-span-2">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <DemandForecast />
-                <WasteAnalysis />
-              </div>
-            </div>
-            <div className="lg:col-span-1" data-tour="achievements">
-              <AchievementDashboard />
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <DemandForecast />
+            <WasteAnalysis />
           </div>
           
 
@@ -77,6 +81,10 @@ export default function Dashboard() {
           
           <div className="mt-6">
             <SupplierPerformance />
+          </div>
+          
+          <div className="mt-6">
+            <CompetitorImport />
           </div>
         </div>
       </main>

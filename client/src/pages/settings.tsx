@@ -9,15 +9,22 @@ import { Separator } from "@/components/ui/separator";
 import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
-import { Settings as SettingsIcon, User, Bell, Shield, Database, HelpCircle, Play } from "lucide-react";
+import { Settings as SettingsIcon, User, Bell, Shield, Database, HelpCircle, Play, Phone, Eye, Zap, Check } from "lucide-react";
 import { useOnboarding } from "@/hooks/use-onboarding";
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 export default function Settings() {
   const [notifications, setNotifications] = useState(true);
   const [lowStockAlerts, setLowStockAlerts] = useState(true);
   const [expirationAlerts, setExpirationAlerts] = useState(true);
   const [aiRecommendations, setAiRecommendations] = useState(true);
+  const [largeButtons, setLargeButtons] = useState(false);
+  const [highContrast, setHighContrast] = useState(false);
+  const [smsEnabled, setSmsEnabled] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [smsTime, setSmsTime] = useState("08:00");
   const { restartOnboarding } = useOnboarding();
   const { toast } = useToast();
 
@@ -223,6 +230,155 @@ export default function Settings() {
                   </Select>
                 </div>
                 <Button>Save System Settings</Button>
+              </CardContent>
+            </Card>
+
+            {/* Accessibility Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center">
+                    <Eye className="h-5 w-5 mr-2" />
+                    Accessibility Settings
+                  </span>
+                  <Badge variant="secondary">For Everyone</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <p className="font-medium">Large Button Mode</p>
+                    <p className="text-sm text-muted-foreground">
+                      Make buttons and text 50% larger for easier viewing
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={largeButtons} 
+                    onCheckedChange={(checked) => {
+                      setLargeButtons(checked);
+                      document.documentElement.classList.toggle('large-ui', checked);
+                      toast({
+                        title: checked ? "Large Button Mode Enabled" : "Large Button Mode Disabled",
+                        description: checked ? "UI elements are now larger and easier to click" : "UI returned to normal size",
+                      });
+                    }}
+                  />
+                </div>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <p className="font-medium">High Contrast Mode</p>
+                    <p className="text-sm text-muted-foreground">
+                      Increase contrast for better visibility
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={highContrast} 
+                    onCheckedChange={(checked) => {
+                      setHighContrast(checked);
+                      document.documentElement.classList.toggle('high-contrast', checked);
+                    }}
+                  />
+                </div>
+                <div className="p-4 bg-accent/50 rounded-lg">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Zap className="h-4 w-4" />
+                    Pro Tip: Use keyboard shortcuts
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Press <kbd className="px-2 py-1 bg-background rounded text-xs">Ctrl</kbd> + <kbd className="px-2 py-1 bg-background rounded text-xs">+</kbd> to zoom in
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* SMS Daily Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center">
+                    <Phone className="h-5 w-5 mr-2" />
+                    SMS Daily Summary
+                  </span>
+                  {smsEnabled && <Badge variant="default">Active</Badge>}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <p className="font-medium">Enable Daily SMS Updates</p>
+                    <p className="text-sm text-muted-foreground">
+                      Get a summary of low stock items every morning
+                    </p>
+                  </div>
+                  <Switch 
+                    checked={smsEnabled} 
+                    onCheckedChange={setSmsEnabled}
+                  />
+                </div>
+                
+                {smsEnabled && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input 
+                        id="phone"
+                        type="tel"
+                        placeholder="+1 (555) 123-4567"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Standard SMS rates may apply
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="smsTime">Delivery Time</Label>
+                      <Select value={smsTime} onValueChange={setSmsTime}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="06:00">6:00 AM</SelectItem>
+                          <SelectItem value="07:00">7:00 AM</SelectItem>
+                          <SelectItem value="08:00">8:00 AM</SelectItem>
+                          <SelectItem value="09:00">9:00 AM</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="p-4 bg-accent/50 rounded-lg space-y-2">
+                      <p className="text-sm font-medium">Sample Message:</p>
+                      <p className="text-xs font-mono">
+                        StockSense Alert: You're low on 3 items. 
+                        Fresh Tomatoes (5 left), 
+                        Milk 2% (8 left), 
+                        Bread (3 left). 
+                        Tap to reorder: stocksense.app/r/12345
+                      </p>
+                    </div>
+                  </>
+                )}
+                
+                <Button 
+                  className="w-full"
+                  onClick={() => {
+                    toast({
+                      title: smsEnabled ? "SMS Updates Saved" : "Please Enable SMS First",
+                      description: smsEnabled ? "You'll receive daily summaries at " + smsTime : "Toggle the switch above to enable SMS updates",
+                    });
+                  }}
+                >
+                  {smsEnabled ? (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Save SMS Settings
+                    </>
+                  ) : (
+                    "Enable SMS to Continue"
+                  )}
+                </Button>
               </CardContent>
             </Card>
 
