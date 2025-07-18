@@ -10,7 +10,8 @@ import {
   FileText,
   MapPin,
   Users,
-  Trophy
+  Trophy,
+  AlertTriangle
 } from "lucide-react";
 
 const navigation = [
@@ -18,6 +19,7 @@ const navigation = [
   { name: "Inventory", icon: Package, href: "/inventory" },
   { name: "Analytics", icon: BarChart3, href: "/analytics" },
   { name: "Reports", icon: FileText, href: "/reports" },
+  { name: "Spoilage Prediction", icon: AlertTriangle, href: "/spoilage" },
   { name: "Suppliers", icon: Truck, href: "/suppliers" },
   { name: "Locations", icon: MapPin, href: "/locations" },
   { name: "Users", icon: Users, href: "/users" },

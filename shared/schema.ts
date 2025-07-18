@@ -115,6 +115,7 @@ export const inventory = pgTable("inventory", {
   maxStock: decimal("max_stock", { precision: 10, scale: 2 }),
   lastRestocked: timestamp("last_restocked"),
   expirationDate: timestamp("expiration_date"),
+  storageConditions: jsonb("storage_conditions"),
   location: text("location"), // Legacy field for backward compatibility
   updatedAt: timestamp("updated_at").defaultNow(),
 });

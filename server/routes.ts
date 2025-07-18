@@ -567,6 +567,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Spoilage prediction routes
+  app.get("/api/spoilage/risks", async (req, res) => {
+    try {
+      const risks = await storage.getSpoilageRisks(parseInt(MOCK_USER_ID));
+      res.json(risks);
+    } catch (error) {
+      console.error("Error fetching spoilage risks:", error);
+      res.status(500).json({ error: "Failed to fetch spoilage risks" });
+    }
+  });
+
+  app.put("/api/spoilage/storage-conditions/:productId", async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const { conditions } = req.body;
+      
+      await storage.updateStorageConditions(parseInt(productId), conditions, parseInt(MOCK_USER_ID));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating storage conditions:", error);
+      res.status(500).json({ error: "Failed to update storage conditions" });
+    }
+  });
+
+  app.get("/api/spoilage/predictions", async (req, res) => {
+    try {
+      const { spoilagePredictor } = await import('./spoilage-predictor');
+      const predictions = await spoilagePredictor.generateAdvancedPredictions(parseInt(MOCK_USER_ID));
+      res.json(predictions);
+    } catch (error) {
+      console.error("Error generating spoilage predictions:", error);
+      res.status(500).json({ error: "Failed to generate spoilage predictions" });
+    }
+  });
+
   // Initialize achievements
   app.post("/api/achievements/init", async (req, res) => {
     try {

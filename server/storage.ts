@@ -109,6 +109,10 @@ export interface IStorage {
   updateAchievementProgress(userId: string, achievementId: number, progress: number): Promise<UserAchievement>;
   completeAchievement(userId: string, achievementId: number): Promise<UserAchievement>;
   checkAndUpdateAchievements(userId: string): Promise<Achievement[]>;
+
+  // Spoilage prediction operations
+  getSpoilageRisks(userId: number): Promise<any[]>;
+  updateStorageConditions(productId: number, conditions: any, userId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -630,6 +634,19 @@ export class DatabaseStorage implements IStorage {
       .from(achievements)
       .where(eq(achievements.id, achievementId));
     return achievement?.points || 100;
+  }
+
+  // Spoilage prediction operations
+  async getSpoilageRisks(userId: number): Promise<any[]> {
+    const { spoilagePredictor } = await import('./spoilage-predictor');
+    return await spoilagePredictor.predictSpoilageRisks(userId);
+  }
+
+  async updateStorageConditions(productId: number, conditions: any, userId: number): Promise<void> {
+    await db
+      .update(inventory)
+      .set({ storageConditions: conditions })
+      .where(and(eq(inventory.productId, productId), eq(inventory.userId, userId)));
   }
 }
 

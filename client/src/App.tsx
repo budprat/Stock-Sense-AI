@@ -15,6 +15,7 @@ import Reports from "@/pages/reports";
 import Locations from "@/pages/locations";
 import Users from "@/pages/users";
 import Achievements from "@/pages/achievements";
+import Spoilage from "@/pages/spoilage";
 import NotFound from "@/pages/not-found";
 import OnboardingTutorial from "@/components/onboarding/onboarding-tutorial";
 import FeedbackWidget from "@/components/feedback/feedback-widget";
@@ -57,6 +58,7 @@ function Router() {
         <Route path="/locations" component={Locations} />
         <Route path="/users" component={Users} />
         <Route path="/achievements" component={Achievements} />
+        <Route path="/spoilage" component={Spoilage} />
         <Route path="/onboarding" component={Onboarding} />
         <Route component={NotFound} />
       </Switch>
