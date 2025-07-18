@@ -28,7 +28,7 @@ interface Notification {
   title: string;
   message: string;
   emoji: string;
-  timestamp: Date;
+  timestamp: Date | string;
   read: boolean;
   actionable: boolean;
   action?: string;
@@ -212,9 +212,10 @@ export default function NotificationCenter() {
     }
   };
 
-  const formatTimestamp = (timestamp: Date) => {
+  const formatTimestamp = (timestamp: Date | string) => {
     const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / (1000 * 60));
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
