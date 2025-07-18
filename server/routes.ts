@@ -709,6 +709,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Storage conditions tracking
+  app.get("/api/storage-conditions/:productId", isAuthenticated, async (req, res) => {
+    try {
+      const { productId } = req.params;
+      const conditions = await storage.getStorageConditions(parseInt(productId));
+      res.json(conditions);
+    } catch (error) {
+      console.error("Error getting storage conditions:", error);
+      res.status(500).json({ message: "Failed to get storage conditions" });
+    }
+  });
+
+  app.post("/api/storage-conditions", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const conditionData = {
+        ...req.body,
+        recordedBy: userId,
+      };
+      const condition = await storage.createStorageCondition(conditionData);
+      res.json(condition);
+    } catch (error) {
+      console.error("Error creating storage condition:", error);
+      res.status(500).json({ message: "Failed to create storage condition" });
+    }
+  });
+
+  // Critical alerts
+  app.get("/api/critical-alerts", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const alerts = await storage.getCriticalAlerts(userId);
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error getting critical alerts:", error);
+      res.status(500).json({ message: "Failed to get critical alerts" });
+    }
+  });
+
+  app.post("/api/critical-alerts", isAuthenticated, async (req, res) => {
+    try {
+      const alert = await storage.createCriticalAlert(req.body);
+      res.json(alert);
+    } catch (error) {
+      console.error("Error creating critical alert:", error);
+      res.status(500).json({ message: "Failed to create critical alert" });
+    }
+  });
+
+  app.put("/api/critical-alerts/:id/resolve", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const { id } = req.params;
+      const alert = await storage.resolveCriticalAlert(parseInt(id), userId);
+      res.json(alert);
+    } catch (error) {
+      console.error("Error resolving critical alert:", error);
+      res.status(500).json({ message: "Failed to resolve critical alert" });
+    }
+  });
+
+  // Batch processing
+  app.post("/api/batch-jobs", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const jobData = {
+        ...req.body,
+        createdBy: userId,
+      };
+      const job = await storage.createBatchJob(jobData);
+      res.json(job);
+    } catch (error) {
+      console.error("Error creating batch job:", error);
+      res.status(500).json({ message: "Failed to create batch job" });
+    }
+  });
+
+  app.get("/api/batch-jobs", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const jobs = await storage.getBatchJobs(userId);
+      res.json(jobs);
+    } catch (error) {
+      console.error("Error getting batch jobs:", error);
+      res.status(500).json({ message: "Failed to get batch jobs" });
+    }
+  });
+
+  app.get("/api/batch-jobs/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const job = await storage.getBatchJob(parseInt(id));
+      res.json(job);
+    } catch (error) {
+      console.error("Error getting batch job:", error);
+      res.status(500).json({ message: "Failed to get batch job" });
+    }
+  });
+
+  app.post("/api/batch-jobs/:id/start", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const job = await storage.startBatchJob(parseInt(id));
+      res.json(job);
+    } catch (error) {
+      console.error("Error starting batch job:", error);
+      res.status(500).json({ message: "Failed to start batch job" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

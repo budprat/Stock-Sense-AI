@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   AlertTriangle, 
@@ -15,7 +15,13 @@ import {
   ShieldAlert,
   Eye,
   Settings,
-  RefreshCw
+  RefreshCw,
+  Plus,
+  Sun,
+  Bell,
+  Calculator,
+  Brain,
+  Play
 } from "lucide-react";
 import { 
   useSpoilageRisks, 
@@ -169,9 +175,12 @@ export default function SpoilageDashboard() {
       </div>
 
       <Tabs defaultValue="risks" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="risks">Risk Analysis</TabsTrigger>
           <TabsTrigger value="predictions">AI Predictions</TabsTrigger>
+          <TabsTrigger value="storage">Storage Tracking</TabsTrigger>
+          <TabsTrigger value="alerts">Critical Alerts</TabsTrigger>
+          <TabsTrigger value="batch">Batch Processing</TabsTrigger>
         </TabsList>
 
         <TabsContent value="risks" className="space-y-4">
@@ -412,6 +421,317 @@ export default function SpoilageDashboard() {
                   )}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Storage Tracking Tab */}
+        <TabsContent value="storage">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Storage Conditions Tracking</CardTitle>
+              <CardDescription>
+                Monitor and record detailed storage conditions for better spoilage prediction
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Current Storage Conditions</h3>
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      // TODO: Open storage condition recording modal
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Record Conditions
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Thermometer className="h-4 w-4 text-blue-500" />
+                        Temperature
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">4.2°C</div>
+                      <p className="text-xs text-muted-foreground">Refrigerated storage</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Droplets className="h-4 w-4 text-cyan-500" />
+                        Humidity
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">65%</div>
+                      <p className="text-xs text-muted-foreground">Optimal range</p>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Sun className="h-4 w-4 text-yellow-500" />
+                        Light Exposure
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">Low</div>
+                      <p className="text-xs text-muted-foreground">Protected from light</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="font-semibold mb-3">Recent Storage Records</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Fresh Tomatoes</p>
+                        <p className="text-sm text-muted-foreground">Temperature: 4.1°C, Humidity: 63%</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">2 hours ago</p>
+                        <p className="text-xs text-muted-foreground">Recorded by System</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Chicken Breast</p>
+                        <p className="text-sm text-muted-foreground">Temperature: 3.8°C, Humidity: 68%</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium">4 hours ago</p>
+                        <p className="text-xs text-muted-foreground">Recorded by System</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Critical Alerts Tab */}
+        <TabsContent value="alerts">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Critical Alerts</CardTitle>
+              <CardDescription>
+                Automated alerts for critical risk items requiring immediate attention
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Active Alerts</h3>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="destructive">3 Critical</Badge>
+                    <Badge variant="secondary">2 High</Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                    <AlertTitle className="text-red-800">Critical Temperature Alert</AlertTitle>
+                    <AlertDescription className="text-red-700">
+                      <div className="flex items-center justify-between">
+                        <span>Refrigeration unit #2 temperature risen to 8.5°C - 12 items at risk</span>
+                        <Button variant="outline" size="sm" className="ml-4">
+                          Resolve
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+
+                  <Alert className="border-red-200 bg-red-50">
+                    <ShieldAlert className="h-4 w-4 text-red-500" />
+                    <AlertTitle className="text-red-800">Critical Expiry Warning</AlertTitle>
+                    <AlertDescription className="text-red-700">
+                      <div className="flex items-center justify-between">
+                        <span>5 items expiring in 24 hours - immediate action required</span>
+                        <Button variant="outline" size="sm" className="ml-4">
+                          Resolve
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+
+                  <Alert className="border-orange-200 bg-orange-50">
+                    <Clock className="h-4 w-4 text-orange-500" />
+                    <AlertTitle className="text-orange-800">High Risk Items</AlertTitle>
+                    <AlertDescription className="text-orange-700">
+                      <div className="flex items-center justify-between">
+                        <span>8 items have risk scores above 75% - monitor closely</span>
+                        <Button variant="outline" size="sm" className="ml-4">
+                          View Details
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="font-semibold mb-3">Alert History</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 border rounded-lg bg-green-50">
+                      <div>
+                        <p className="font-medium text-green-800">Temperature Alert Resolved</p>
+                        <p className="text-sm text-green-600">Refrigeration unit #1 temperature normalized</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-green-700">Resolved 1 hour ago</p>
+                        <p className="text-xs text-green-600">by John Doe</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Batch Processing Tab */}
+        <TabsContent value="batch">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Batch Processing</CardTitle>
+              <CardDescription>
+                Process large inventories efficiently with automated batch operations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Available Batch Operations</h3>
+                  <Button 
+                    size="sm"
+                    onClick={() => {
+                      // TODO: Open batch job creation modal
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Batch Job
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Calculator className="h-4 w-4 text-blue-500" />
+                        Risk Analysis
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        Analyze spoilage risk for all inventory items
+                      </p>
+                      <Button variant="outline" size="sm" className="mt-2 w-full">
+                        Process All Items
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-purple-500" />
+                        AI Predictions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        Generate predictions for all products
+                      </p>
+                      <Button variant="outline" size="sm" className="mt-2 w-full">
+                        Generate Predictions
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:bg-gray-50 transition-colors">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Bell className="h-4 w-4 text-orange-500" />
+                        Alert Generation
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">
+                        Create alerts for critical items
+                      </p>
+                      <Button variant="outline" size="sm" className="mt-2 w-full">
+                        Generate Alerts
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="mt-6">
+                  <h4 className="font-semibold mb-3">Recent Batch Jobs</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div>
+                          <p className="font-medium">Risk Analysis - All Items</p>
+                          <p className="text-sm text-muted-foreground">
+                            Processed 156 items • Completed 2 hours ago
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="secondary">Completed</Badge>
+                        <p className="text-xs text-muted-foreground mt-1">Duration: 3m 24s</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                        <div>
+                          <p className="font-medium">AI Predictions - Perishables</p>
+                          <p className="text-sm text-muted-foreground">
+                            Processing 89 items • 67% complete
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="outline">Running</Badge>
+                        <p className="text-xs text-muted-foreground mt-1">ETA: 1m 12s</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                        <div>
+                          <p className="font-medium">Alert Generation - Critical Items</p>
+                          <p className="text-sm text-muted-foreground">
+                            24 items queued • Waiting to start
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="outline">Pending</Badge>
+                        <Button variant="ghost" size="sm" className="ml-2">
+                          <Play className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

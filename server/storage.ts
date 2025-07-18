@@ -12,6 +12,9 @@ import {
   achievements,
   userAchievements,
   userStats,
+  storageConditions,
+  criticalAlerts,
+  batchJobs,
   type User,
   type UpsertUser,
   type Product,
@@ -37,6 +40,12 @@ import {
   type UserStats,
   type InsertUserStats,
   type AchievementWithProgress,
+  type StorageCondition,
+  type InsertStorageCondition,
+  type CriticalAlert,
+  type InsertCriticalAlert,
+  type BatchJob,
+  type InsertBatchJob,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql, desc, asc } from "drizzle-orm";
@@ -113,6 +122,25 @@ export interface IStorage {
   // Spoilage prediction operations
   getSpoilageRisks(userId: number): Promise<any[]>;
   updateStorageConditions(productId: number, conditions: any, userId: number): Promise<void>;
+
+  // Storage conditions tracking
+  getStorageConditions(productId: number): Promise<StorageCondition[]>;
+  createStorageCondition(condition: InsertStorageCondition): Promise<StorageCondition>;
+  updateStorageCondition(id: number, condition: Partial<StorageCondition>): Promise<StorageCondition>;
+
+  // Critical alerts
+  getCriticalAlerts(userId: string): Promise<CriticalAlert[]>;
+  createCriticalAlert(alert: InsertCriticalAlert): Promise<CriticalAlert>;
+  resolveCriticalAlert(id: number, userId: string): Promise<CriticalAlert>;
+
+  // Batch processing
+  getBatchJobs(userId: string): Promise<BatchJob[]>;
+  getBatchJob(id: number): Promise<BatchJob | undefined>;
+  createBatchJob(job: InsertBatchJob): Promise<BatchJob>;
+  updateBatchJob(id: number, job: Partial<BatchJob>): Promise<BatchJob>;
+  startBatchJob(id: number): Promise<BatchJob>;
+  completeBatchJob(id: number, results: any): Promise<BatchJob>;
+  failBatchJob(id: number, errors: string[]): Promise<BatchJob>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -645,6 +673,140 @@ export class DatabaseStorage implements IStorage {
   async updateStorageConditions(productId: number, conditions: any, userId: number): Promise<void> {
     // TODO: Implement when storage_conditions column is available
     console.log('Storage conditions update requested for product:', productId);
+  }
+
+  // Storage conditions tracking
+  async getStorageConditions(productId: number): Promise<StorageCondition[]> {
+    const conditions = await db
+      .select()
+      .from(storageConditions)
+      .where(eq(storageConditions.productId, productId))
+      .orderBy(desc(storageConditions.recordedAt));
+    return conditions;
+  }
+
+  async createStorageCondition(condition: InsertStorageCondition): Promise<StorageCondition> {
+    const [newCondition] = await db
+      .insert(storageConditions)
+      .values(condition)
+      .returning();
+    return newCondition;
+  }
+
+  async updateStorageCondition(id: number, condition: Partial<StorageCondition>): Promise<StorageCondition> {
+    const [updatedCondition] = await db
+      .update(storageConditions)
+      .set(condition)
+      .where(eq(storageConditions.id, id))
+      .returning();
+    return updatedCondition;
+  }
+
+  // Critical alerts
+  async getCriticalAlerts(userId: string): Promise<CriticalAlert[]> {
+    const alerts = await db
+      .select()
+      .from(criticalAlerts)
+      .where(eq(criticalAlerts.isResolved, false))
+      .orderBy(desc(criticalAlerts.createdAt), desc(criticalAlerts.severity));
+    return alerts;
+  }
+
+  async createCriticalAlert(alert: InsertCriticalAlert): Promise<CriticalAlert> {
+    const [newAlert] = await db
+      .insert(criticalAlerts)
+      .values(alert)
+      .returning();
+    return newAlert;
+  }
+
+  async resolveCriticalAlert(id: number, userId: string): Promise<CriticalAlert> {
+    const [resolvedAlert] = await db
+      .update(criticalAlerts)
+      .set({
+        isResolved: true,
+        resolvedAt: new Date(),
+        resolvedBy: userId,
+        updatedAt: new Date(),
+      })
+      .where(eq(criticalAlerts.id, id))
+      .returning();
+    return resolvedAlert;
+  }
+
+  // Batch processing
+  async getBatchJobs(userId: string): Promise<BatchJob[]> {
+    const jobs = await db
+      .select()
+      .from(batchJobs)
+      .where(eq(batchJobs.createdBy, userId))
+      .orderBy(desc(batchJobs.createdAt));
+    return jobs;
+  }
+
+  async getBatchJob(id: number): Promise<BatchJob | undefined> {
+    const [job] = await db
+      .select()
+      .from(batchJobs)
+      .where(eq(batchJobs.id, id));
+    return job;
+  }
+
+  async createBatchJob(job: InsertBatchJob): Promise<BatchJob> {
+    const [newJob] = await db
+      .insert(batchJobs)
+      .values(job)
+      .returning();
+    return newJob;
+  }
+
+  async updateBatchJob(id: number, job: Partial<BatchJob>): Promise<BatchJob> {
+    const [updatedJob] = await db
+      .update(batchJobs)
+      .set({ ...job, updatedAt: new Date() })
+      .where(eq(batchJobs.id, id))
+      .returning();
+    return updatedJob;
+  }
+
+  async startBatchJob(id: number): Promise<BatchJob> {
+    const [startedJob] = await db
+      .update(batchJobs)
+      .set({
+        status: 'running',
+        startedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(batchJobs.id, id))
+      .returning();
+    return startedJob;
+  }
+
+  async completeBatchJob(id: number, results: any): Promise<BatchJob> {
+    const [completedJob] = await db
+      .update(batchJobs)
+      .set({
+        status: 'completed',
+        completedAt: new Date(),
+        results,
+        updatedAt: new Date(),
+      })
+      .where(eq(batchJobs.id, id))
+      .returning();
+    return completedJob;
+  }
+
+  async failBatchJob(id: number, errors: string[]): Promise<BatchJob> {
+    const [failedJob] = await db
+      .update(batchJobs)
+      .set({
+        status: 'failed',
+        errors,
+        updatedAt: new Date(),
+      })
+      .where(eq(batchJobs.id, id))
+      .returning();
+    return failedJob;
   }
 }
 

@@ -520,3 +520,75 @@ export type AchievementWithProgress = Achievement & {
   isCompleted: boolean;
   completedAt?: Date;
 };
+
+// Storage conditions tracking
+export const storageConditions = pgTable("storage_conditions", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  locationId: integer("location_id").references(() => locations.id).notNull(),
+  temperature: decimal("temperature", { precision: 5, scale: 2 }).notNull(),
+  humidity: decimal("humidity", { precision: 5, scale: 2 }).notNull(),
+  lightExposure: varchar("light_exposure", { length: 50 }).notNull(), // low, medium, high
+  airflow: varchar("airflow", { length: 50 }).notNull(), // poor, adequate, excellent
+  containerType: varchar("container_type", { length: 100 }),
+  shelfLife: integer("shelf_life_days"),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+  recordedBy: varchar("recorded_by").references(() => users.id).notNull(),
+  notes: text("notes"),
+});
+
+// Critical alerts system
+export const criticalAlerts = pgTable("critical_alerts", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  locationId: integer("location_id").references(() => locations.id).notNull(),
+  alertType: varchar("alert_type", { length: 50 }).notNull(), // spoilage, temperature, expiry, stock
+  severity: varchar("severity", { length: 20 }).notNull(), // low, medium, high, critical
+  message: text("message").notNull(),
+  isResolved: boolean("is_resolved").default(false),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: varchar("resolved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Batch processing jobs
+export const batchJobs = pgTable("batch_jobs", {
+  id: serial("id").primaryKey(),
+  jobType: varchar("job_type", { length: 50 }).notNull(), // risk_analysis, predictions, alerts
+  status: varchar("status", { length: 20 }).notNull(), // pending, running, completed, failed
+  totalItems: integer("total_items").notNull(),
+  processedItems: integer("processed_items").default(0),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdBy: varchar("created_by").references(() => users.id).notNull(),
+  results: jsonb("results"),
+  errors: text("errors").array(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// New types for the added tables
+export type StorageCondition = typeof storageConditions.$inferSelect;
+export type InsertStorageCondition = typeof storageConditions.$inferInsert;
+export type CriticalAlert = typeof criticalAlerts.$inferSelect;
+export type InsertCriticalAlert = typeof criticalAlerts.$inferInsert;
+export type BatchJob = typeof batchJobs.$inferSelect;
+export type InsertBatchJob = typeof batchJobs.$inferInsert;
+
+export const insertStorageConditionSchema = createInsertSchema(storageConditions).omit({
+  id: true,
+  recordedAt: true,
+});
+
+export const insertCriticalAlertSchema = createInsertSchema(criticalAlerts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBatchJobSchema = createInsertSchema(batchJobs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
