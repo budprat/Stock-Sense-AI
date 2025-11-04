@@ -180,15 +180,25 @@ npx drizzle-kit studio
 
 ## Environment Variables
 
-Required:
-- `DATABASE_URL` - PostgreSQL connection string (Neon)
-- `SESSION_SECRET` - Express session secret (auto-generated if missing)
-- `REPLIT_DEPLOYMENT` - Set to "1" in production for Replit Auth
-- `REPLIT_DOMAINS` - Production domain for OIDC redirects
+**Setup:** Copy `.env.example` to `.env` and fill in your actual values.
 
-Optional:
-- `GEMINI_API_KEY` - Google Gemini API key for AI features
+**Required:**
+- `DATABASE_URL` - PostgreSQL connection string (Neon serverless)
+- `SESSION_SECRET` - Express session secret for cookie signing
+  - Generate with: `openssl rand -base64 32`
+  - Must be set before starting the server
+- `REPLIT_DOMAINS` - Comma-separated production domains for OIDC redirects
+- `REPL_ID` - Replit Auth client ID
+
+**Optional:**
+- `GEMINI_API_KEY` - Google Gemini API key for AI features (disabled if not provided)
+- `DEMO_CLEANUP_SECRET` - Secret key to protect `/api/demo/cleanup` endpoint
+- `ISSUER_URL` - OpenID Connect issuer URL (defaults to `https://replit.com/oidc`)
 - `NODE_ENV` - "development" or "production"
+- `PORT` - Server port (defaults to 5000)
+- `REPLIT_DEPLOYMENT` - Set to "1" in production deployments
+
+**Security Note:** Never commit `.env` files to git. The `.gitignore` file is configured to exclude all `.env*` files except `.env.example`.
 
 ## Important Conventions
 
