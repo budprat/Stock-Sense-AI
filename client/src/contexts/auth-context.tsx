@@ -1,82 +1,82 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, ReactNode } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+
+interface User {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  profileImageUrl?: string;
+  businessType?: string;
+  role: string;
+  isActive: boolean;
+}
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  isFirstTime: boolean;
-  businessType: string | null;
-  setBusinessType: (type: string) => void;
-  completeOnboarding: () => void;
+  user: User | null | undefined;
+  isLoading: boolean;
   login: () => void;
   logout: () => void;
+  updateBusinessType: (type: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+  // Fetch user from backend session
+  const { data: user, isLoading } = useQuery({
+    queryKey: ['/api', 'auth', 'user'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/auth/user', { credentials: 'include' });
+        if (res.status === 401) return null;
+        if (!res.ok) throw new Error('Failed to fetch user');
+        return await res.json();
+      } catch (error) {
+        console.error('Auth error:', error);
+        return null;
+      }
+    },
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isFirstTime, setIsFirstTime] = useState(true);
-  const [businessType, setBusinessType] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Check localStorage for existing session
-    const savedAuth = localStorage.getItem('stocksense_auth');
-    const savedBusinessType = localStorage.getItem('stocksense_business_type');
-    const savedOnboarding = localStorage.getItem('stocksense_onboarding_complete');
-    
-    if (savedAuth === 'true') {
-      setIsAuthenticated(true);
-      setIsFirstTime(savedOnboarding !== 'true');
-      setBusinessType(savedBusinessType);
-    }
-  }, []);
+  const updateBusinessTypeMutation = useMutation({
+    mutationFn: async (businessType: string) => {
+      if (!user) throw new Error('No user');
+      return apiRequest('PATCH', `/api/users/${user.id}`, { businessType });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api', 'auth', 'user'] });
+    },
+  });
 
   const login = () => {
-    setIsAuthenticated(true);
-    localStorage.setItem('stocksense_auth', 'true');
+    window.location.href = '/api/login';
   };
 
   const logout = () => {
-    setIsAuthenticated(false);
-    setIsFirstTime(true);
-    setBusinessType(null);
-    localStorage.removeItem('stocksense_auth');
-    localStorage.removeItem('stocksense_business_type');
-    localStorage.removeItem('stocksense_onboarding_complete');
+    window.location.href = '/api/logout';
   };
 
-  const handleSetBusinessType = (type: string) => {
-    setBusinessType(type);
-    localStorage.setItem('stocksense_business_type', type);
-  };
-
-  const completeOnboarding = () => {
-    setIsFirstTime(false);
-    localStorage.setItem('stocksense_onboarding_complete', 'true');
+  const updateBusinessType = async (type: string) => {
+    await updateBusinessTypeMutation.mutateAsync(type);
   };
 
   return (
-    <AuthContext.Provider value={{
-      isAuthenticated,
-      isFirstTime,
-      businessType,
-      setBusinessType: handleSetBusinessType,
-      completeOnboarding,
-      login,
-      logout
-    }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, updateBusinessType }}>
       {children}
     </AuthContext.Provider>
   );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
 }
