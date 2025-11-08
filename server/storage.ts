@@ -72,43 +72,43 @@ export interface IStorage {
   createUser?(user: any): Promise<User>;
 
   // Product operations
-  getProducts(userId: number): Promise<Product[]>;
-  getProduct(id: number, userId: number): Promise<Product | undefined>;
-  createProduct(product: InsertProduct & { userId: number }): Promise<Product>;
-  updateProduct(id: number, product: Partial<InsertProduct>, userId: number): Promise<Product | undefined>;
-  deleteProduct(id: number, userId: number): Promise<boolean>;
+  getProducts(userId: string): Promise<Product[]>;
+  getProduct(id: number, userId: string): Promise<Product | undefined>;
+  createProduct(product: InsertProduct & { userId: string }): Promise<Product>;
+  updateProduct(id: number, product: Partial<InsertProduct>, userId: string): Promise<Product | undefined>;
+  deleteProduct(id: number, userId: string): Promise<boolean>;
 
   // Inventory operations
-  getInventory(userId: number): Promise<InventoryWithProduct[]>;
-  getInventoryItem(productId: number, userId: number): Promise<InventoryWithProduct | undefined>;
-  getInventoryByProduct(userId: number, productId: number): Promise<Inventory | undefined>;
-  createInventoryItem(item: InsertInventory & { userId: number }): Promise<Inventory>;
-  updateInventoryItem(productId: number, item: Partial<InsertInventory>, userId: number): Promise<Inventory | undefined>;
-  deleteInventoryByProductId(productId: number, userId: number): Promise<boolean>;
+  getInventory(userId: string): Promise<InventoryWithProduct[]>;
+  getInventoryItem(productId: number, userId: string): Promise<InventoryWithProduct | undefined>;
+  getInventoryByProduct(userId: string, productId: number): Promise<Inventory | undefined>;
+  createInventoryItem(item: InsertInventory & { userId: string }): Promise<Inventory>;
+  updateInventoryItem(productId: number, item: Partial<InsertInventory>, userId: string): Promise<Inventory | undefined>;
+  deleteInventoryByProductId(productId: number, userId: string): Promise<boolean>;
 
   // Supplier operations
-  getSuppliers(userId: number): Promise<Supplier[]>;
-  getSupplier(id: number, userId: number): Promise<Supplier | undefined>;
-  createSupplier(supplier: InsertSupplier & { userId: number }): Promise<Supplier>;
-  updateSupplier(id: number, supplier: Partial<InsertSupplier>, userId: number): Promise<Supplier | undefined>;
+  getSuppliers(userId: string): Promise<Supplier[]>;
+  getSupplier(id: number, userId: string): Promise<Supplier | undefined>;
+  createSupplier(supplier: InsertSupplier & { userId: string }): Promise<Supplier>;
+  updateSupplier(id: number, supplier: Partial<InsertSupplier>, userId: string): Promise<Supplier | undefined>;
 
   // AI recommendations
-  getAIRecommendations(userId: number): Promise<AIRecommendationWithProduct[]>;
-  createAIRecommendation(recommendation: InsertAIRecommendation & { userId: number }): Promise<AIRecommendation>;
-  updateAIRecommendation(id: number, recommendation: Partial<InsertAIRecommendation>, userId: number): Promise<AIRecommendation | undefined>;
+  getAIRecommendations(userId: string): Promise<AIRecommendationWithProduct[]>;
+  createAIRecommendation(recommendation: InsertAIRecommendation & { userId: string }): Promise<AIRecommendation>;
+  updateAIRecommendation(id: number, recommendation: Partial<InsertAIRecommendation>, userId: string): Promise<AIRecommendation | undefined>;
 
   // Analytics
-  getInventoryHealth(userId: number): Promise<{
+  getInventoryHealth(userId: string): Promise<{
     healthy: number;
     lowStock: number;
     outOfStock: number;
     totalValue: number;
   }>;
-  getWasteRecords(userId: number): Promise<WasteRecord[]>;
-  createWasteRecord(record: InsertWasteRecord & { userId: number }): Promise<WasteRecord>;
+  getWasteRecords(userId: string): Promise<WasteRecord[]>;
+  createWasteRecord(record: InsertWasteRecord & { userId: string }): Promise<WasteRecord>;
 
   // Dashboard stats
-  getDashboardStats(userId: number): Promise<{
+  getDashboardStats(userId: string): Promise<{
     totalInventoryValue: number;
     itemsExpiringSoon: number;
     outOfStockItems: number;
@@ -116,7 +116,7 @@ export interface IStorage {
   }>;
 
   // Demand forecast
-  getDemandForecast(userId: number, productId?: number): Promise<any[]>;
+  getDemandForecast(userId: string, productId?: number): Promise<any[]>;
   
   // Category operations
   getCategories(): Promise<Category[]>;
@@ -124,7 +124,7 @@ export interface IStorage {
 
   // Feedback operations
   createFeedback(feedback: InsertFeedback): Promise<Feedback>;
-  getFeedback(userId: number): Promise<Feedback[]>;
+  getFeedback(userId: string): Promise<Feedback[]>;
 
   // Achievement operations
   getAchievements(): Promise<Achievement[]>;
@@ -136,8 +136,8 @@ export interface IStorage {
   checkAndUpdateAchievements(userId: string): Promise<Achievement[]>;
 
   // Spoilage prediction operations
-  getSpoilageRisks(userId: number): Promise<any[]>;
-  updateStorageConditions(productId: number, conditions: any, userId: number): Promise<void>;
+  getSpoilageRisks(userId: string): Promise<any[]>;
+  updateStorageConditions(productId: number, conditions: any, userId: string): Promise<void>;
 
   // Storage conditions tracking
   getStorageConditions(productId: number): Promise<StorageCondition[]>;
@@ -212,7 +212,7 @@ export class DatabaseStorage implements IStorage {
     return this.upsertUser(userData);
   }
 
-  async getProducts(userId: number): Promise<Product[]> {
+  async getProducts(userId: string): Promise<Product[]> {
     return await db
       .select()
       .from(products)
@@ -220,7 +220,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(products.name));
   }
 
-  async getProduct(id: number, userId: number): Promise<Product | undefined> {
+  async getProduct(id: number, userId: string): Promise<Product | undefined> {
     const [product] = await db
       .select()
       .from(products)
@@ -228,12 +228,12 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
-  async createProduct(product: InsertProduct & { userId: number }): Promise<Product> {
+  async createProduct(product: InsertProduct & { userId: string }): Promise<Product> {
     const [newProduct] = await db.insert(products).values(product).returning();
     return newProduct;
   }
 
-  async updateProduct(id: number, product: Partial<InsertProduct>, userId: number): Promise<Product | undefined> {
+  async updateProduct(id: number, product: Partial<InsertProduct>, userId: string): Promise<Product | undefined> {
     const [updatedProduct] = await db
       .update(products)
       .set({ ...product, updatedAt: new Date() })
@@ -242,14 +242,14 @@ export class DatabaseStorage implements IStorage {
     return updatedProduct;
   }
 
-  async deleteProduct(id: number, userId: number): Promise<boolean> {
+  async deleteProduct(id: number, userId: string): Promise<boolean> {
     const result = await db
       .delete(products)
       .where(and(eq(products.id, id), eq(products.userId, userId)));
     return (result.rowCount || 0) > 0;
   }
 
-  async getInventory(userId: number): Promise<InventoryWithProduct[]> {
+  async getInventory(userId: string): Promise<InventoryWithProduct[]> {
     const result = await db
       .select()
       .from(inventory)
@@ -267,7 +267,7 @@ export class DatabaseStorage implements IStorage {
     })) as InventoryWithProduct[];
   }
 
-  async getInventoryItem(productId: number, userId: number): Promise<InventoryWithProduct | undefined> {
+  async getInventoryItem(productId: number, userId: string): Promise<InventoryWithProduct | undefined> {
     const [result] = await db
       .select()
       .from(inventory)
@@ -286,12 +286,12 @@ export class DatabaseStorage implements IStorage {
     } as InventoryWithProduct;
   }
 
-  async createInventoryItem(item: InsertInventory & { userId: number }): Promise<Inventory> {
+  async createInventoryItem(item: InsertInventory & { userId: string }): Promise<Inventory> {
     const [newItem] = await db.insert(inventory).values(item).returning();
     return newItem;
   }
 
-  async updateInventoryItem(productId: number, item: Partial<InsertInventory>, userId: number): Promise<Inventory | undefined> {
+  async updateInventoryItem(productId: number, item: Partial<InsertInventory>, userId: string): Promise<Inventory | undefined> {
     const [updatedItem] = await db
       .update(inventory)
       .set({ ...item, updatedAt: new Date() })
@@ -300,7 +300,7 @@ export class DatabaseStorage implements IStorage {
     return updatedItem;
   }
 
-  async getInventoryByProduct(userId: number, productId: number): Promise<Inventory | undefined> {
+  async getInventoryByProduct(userId: string, productId: number): Promise<Inventory | undefined> {
     const [item] = await db
       .select()
       .from(inventory)
@@ -308,14 +308,14 @@ export class DatabaseStorage implements IStorage {
     return item;
   }
 
-  async deleteInventoryByProductId(productId: number, userId: number): Promise<boolean> {
+  async deleteInventoryByProductId(productId: number, userId: string): Promise<boolean> {
     const result = await db
       .delete(inventory)
       .where(and(eq(inventory.productId, productId), eq(inventory.userId, userId)));
     return (result.rowCount || 0) > 0;
   }
 
-  async getSuppliers(userId: number): Promise<Supplier[]> {
+  async getSuppliers(userId: string): Promise<Supplier[]> {
     return await db
       .select()
       .from(suppliers)
@@ -323,7 +323,7 @@ export class DatabaseStorage implements IStorage {
       .orderBy(asc(suppliers.name));
   }
 
-  async getSupplier(id: number, userId: number): Promise<Supplier | undefined> {
+  async getSupplier(id: number, userId: string): Promise<Supplier | undefined> {
     const [supplier] = await db
       .select()
       .from(suppliers)
@@ -331,12 +331,12 @@ export class DatabaseStorage implements IStorage {
     return supplier;
   }
 
-  async createSupplier(supplier: InsertSupplier & { userId: number }): Promise<Supplier> {
+  async createSupplier(supplier: InsertSupplier & { userId: string }): Promise<Supplier> {
     const [newSupplier] = await db.insert(suppliers).values(supplier).returning();
     return newSupplier;
   }
 
-  async updateSupplier(id: number, supplier: Partial<InsertSupplier>, userId: number): Promise<Supplier | undefined> {
+  async updateSupplier(id: number, supplier: Partial<InsertSupplier>, userId: string): Promise<Supplier | undefined> {
     const [updatedSupplier] = await db
       .update(suppliers)
       .set(supplier)
@@ -345,7 +345,7 @@ export class DatabaseStorage implements IStorage {
     return updatedSupplier;
   }
 
-  async getAIRecommendations(userId: number): Promise<AIRecommendationWithProduct[]> {
+  async getAIRecommendations(userId: string): Promise<AIRecommendationWithProduct[]> {
     const result = await db
       .select({
         id: aiRecommendations.id,
@@ -385,12 +385,12 @@ export class DatabaseStorage implements IStorage {
     return result as AIRecommendationWithProduct[];
   }
 
-  async createAIRecommendation(recommendation: InsertAIRecommendation & { userId: number }): Promise<AIRecommendation> {
+  async createAIRecommendation(recommendation: InsertAIRecommendation & { userId: string }): Promise<AIRecommendation> {
     const [newRecommendation] = await db.insert(aiRecommendations).values(recommendation).returning();
     return newRecommendation;
   }
 
-  async updateAIRecommendation(id: number, recommendation: Partial<InsertAIRecommendation>, userId: number): Promise<AIRecommendation | undefined> {
+  async updateAIRecommendation(id: number, recommendation: Partial<InsertAIRecommendation>, userId: string): Promise<AIRecommendation | undefined> {
     const [updatedRecommendation] = await db
       .update(aiRecommendations)
       .set({ ...recommendation, updatedAt: new Date() })
@@ -399,7 +399,7 @@ export class DatabaseStorage implements IStorage {
     return updatedRecommendation;
   }
 
-  async getInventoryHealth(userId: number): Promise<{
+  async getInventoryHealth(userId: string): Promise<{
     healthy: number;
     lowStock: number;
     outOfStock: number;
@@ -444,7 +444,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getWasteRecords(userId: number): Promise<WasteRecord[]> {
+  async getWasteRecords(userId: string): Promise<WasteRecord[]> {
     return await db
       .select()
       .from(wasteRecords)
@@ -452,19 +452,19 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(wasteRecords.wasteDate));
   }
 
-  async createWasteRecord(record: InsertWasteRecord & { userId: number }): Promise<WasteRecord> {
+  async createWasteRecord(record: InsertWasteRecord & { userId: string }): Promise<WasteRecord> {
     const [newRecord] = await db.insert(wasteRecords).values(record).returning();
     return newRecord;
   }
 
-  async getDashboardStats(userId: number): Promise<{
+  async getDashboardStats(userId: string): Promise<{
     totalInventoryValue: number;
     itemsExpiringSoon: number;
     outOfStockItems: number;
     monthlySavings: number;
   }> {
     const health = await this.getInventoryHealth(userId);
-    
+
     // Get items expiring soon (within 7 days)
     const expiringItems = await db
       .select({ count: sql<number>`count(*)` })
@@ -497,7 +497,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async getDemandForecast(userId: number, productId?: number): Promise<any[]> {
+  async getDemandForecast(userId: string, productId?: number): Promise<any[]> {
     const conditions = [eq(demandForecast.userId, userId)];
     if (productId) {
       conditions.push(eq(demandForecast.productId, productId));
@@ -527,7 +527,7 @@ export class DatabaseStorage implements IStorage {
     return newFeedback;
   }
 
-  async getFeedback(userId: number): Promise<Feedback[]> {
+  async getFeedback(userId: string): Promise<Feedback[]> {
     return await db
       .select()
       .from(feedback)
@@ -714,12 +714,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Spoilage prediction operations
-  async getSpoilageRisks(userId: number): Promise<any[]> {
+  async getSpoilageRisks(userId: string): Promise<any[]> {
     const { spoilagePredictor } = await import('./spoilage-predictor');
     return await spoilagePredictor.predictSpoilageRisks(userId);
   }
 
-  async updateStorageConditions(productId: number, conditions: any, userId: number): Promise<void> {
+  async updateStorageConditions(productId: number, conditions: any, userId: string): Promise<void> {
     // TODO: Implement when storage_conditions column is available
     console.log('Storage conditions update requested for product:', productId);
   }
