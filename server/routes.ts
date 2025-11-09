@@ -47,27 +47,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mock user ID for demo purposes (in production, get from auth)
-  const MOCK_USER_ID = "1";
-
   // Initialize demo data
-  app.post("/api/init-demo", async (req, res) => {
+  app.post("/api/init-demo", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
+
       // Check if demo data already exists
-      const existingProducts = await storage.getProducts(parseInt(MOCK_USER_ID));
+      const existingProducts = await storage.getProducts(userId);
       if (existingProducts.length > 0) {
         return res.json({ success: true, message: "Demo data already exists" });
       }
 
-      // Create demo user with proper ID
-      const existingUser = await storage.getUser(MOCK_USER_ID);
+      // Create or update user
+      const existingUser = await storage.getUser(userId);
       if (!existingUser) {
-        await storage.createUser({
-          id: "1",
-          email: "demo@stocksense.com",
-          firstName: "John",
-          lastName: "Martinez",
-          businessType: "restaurant",
+        await storage.upsertUser({
+          id: userId,
+          email: req.user.claims.email || "demo@stocksense.com",
+          firstName: req.user.claims.first_name || "User",
+          lastName: req.user.claims.last_name || "Demo",
+          businessType: req.body.businessType || "restaurant",
         });
       }
 
@@ -82,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           imageUrl: "https://images.unsplash.com/photo-1546470427-e212b9ee8f32?w=100&h=100&fit=crop",
           isPerishable: true,
           shelfLifeDays: 7,
-          userId: MOCK_USER_ID,
+          userId: userId,
         },
         {
           name: "Extra Virgin Olive Oil",
@@ -92,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sellingPrice: "12.00",
           imageUrl: "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=100&h=100&fit=crop",
           isPerishable: false,
-          userId: MOCK_USER_ID,
+          userId: userId,
         },
         {
           name: "Bread Flour",
@@ -102,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           sellingPrice: "4.00",
           imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=100&h=100&fit=crop",
           isPerishable: false,
-          userId: MOCK_USER_ID,
+          userId: userId,
         },
         {
           name: "Chicken Breast",
@@ -113,18 +112,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           imageUrl: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=100&h=100&fit=crop",
           isPerishable: true,
           shelfLifeDays: 5,
-          userId: MOCK_USER_ID,
+          userId: userId,
         },
       ];
 
       for (const product of products) {
         const createdProduct = await storage.createProduct(product);
-        
+
         // Create inventory for each product
         const inventoryData = {
           productId: createdProduct.id,
-          userId: MOCK_USER_ID,
-          currentStock: product.name === "Bread Flour" ? "0" : 
+          userId: userId,
+          currentStock: product.name === "Bread Flour" ? "0" :
                        product.name === "Fresh Tomatoes" ? "15" :
                        product.name === "Extra Virgin Olive Oil" ? "12" : "35",
           reorderPoint: product.name === "Bread Flour" ? "50" :
@@ -134,17 +133,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           lastRestocked: new Date(),
           expirationDate: product.isPerishable ? new Date(Date.now() + (product.shelfLifeDays || 7) * 24 * 60 * 60 * 1000) : null,
         };
-        
+
         await storage.createInventoryItem(inventoryData);
       }
 
       // Get created products to use their actual IDs
-      const createdProducts = await storage.getProducts(parseInt(MOCK_USER_ID));
+      const createdProducts = await storage.getProducts(userId);
       const productMap = new Map(createdProducts.map(p => [p.name, p.id]));
 
       // Check if AI recommendations already exist
-      const existingRecommendations = await storage.getAIRecommendations(parseInt(MOCK_USER_ID));
-      
+      const existingRecommendations = await storage.getAIRecommendations(userId);
+
       if (existingRecommendations.length === 0) {
         // Create AI recommendations with actual product IDs only if none exist
         const recommendations = [
@@ -156,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             confidence: "0.87",
             recommendedAction: "Order Now",
             quantityRecommended: "50",
-            userId: MOCK_USER_ID,
+            userId: userId,
           },
           {
             productId: productMap.get("Extra Virgin Olive Oil") || 2,
@@ -166,7 +165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             confidence: "0.73",
             recommendedAction: "Create Promo",
             quantityRecommended: "12",
-            userId: MOCK_USER_ID,
+            userId: userId,
           },
           {
             productId: productMap.get("Bread Flour") || 3,
@@ -176,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             confidence: "0.95",
             recommendedAction: "Emergency Order",
             quantityRecommended: "100",
-            userId: MOCK_USER_ID,
+            userId: userId,
           },
         ];
 
@@ -193,9 +192,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard stats
-  app.get("/api/dashboard/stats", async (req, res) => {
+  app.get("/api/dashboard/stats", isAuthenticated, async (req: any, res) => {
     try {
-      const stats = await storage.getDashboardStats(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const stats = await storage.getDashboardStats(userId);
       res.json(stats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -204,9 +204,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Inventory health
-  app.get("/api/inventory/health", async (req, res) => {
+  app.get("/api/inventory/health", isAuthenticated, async (req: any, res) => {
     try {
-      const health = await storage.getInventoryHealth(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const health = await storage.getInventoryHealth(userId);
       res.json(health);
     } catch (error) {
       console.error("Error fetching inventory health:", error);
@@ -215,9 +216,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI recommendations
-  app.get("/api/recommendations", async (req, res) => {
+  app.get("/api/recommendations", isAuthenticated, async (req: any, res) => {
     try {
-      const recommendations = await storage.getAIRecommendations(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const recommendations = await storage.getAIRecommendations(userId);
       res.json(recommendations);
     } catch (error) {
       console.error("Error fetching recommendations:", error);
@@ -226,17 +228,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update recommendation (mark as actioned)
-  app.patch("/api/recommendations/:id", async (req, res) => {
+  app.patch("/api/recommendations/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const id = parseInt(req.params.id);
       const { isActioned } = req.body;
-      
-      const updated = await storage.updateAIRecommendation(id, { isActioned }, MOCK_USER_ID);
-      
+
+      const updated = await storage.updateAIRecommendation(id, { isActioned }, userId);
+
       if (!updated) {
         return res.status(404).json({ error: "Recommendation not found" });
       }
-      
+
       res.json(updated);
     } catch (error) {
       console.error("Error updating recommendation:", error);
@@ -245,9 +248,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Inventory list
-  app.get("/api/inventory", async (req, res) => {
+  app.get("/api/inventory", isAuthenticated, async (req: any, res) => {
     try {
-      const inventory = await storage.getInventory(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const inventory = await storage.getInventory(userId);
       res.json(inventory);
     } catch (error) {
       console.error("Error fetching inventory:", error);
@@ -256,9 +260,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Inventory Health Score
-  app.get("/api/inventory/health-score", async (req, res) => {
+  app.get("/api/inventory/health-score", isAuthenticated, async (req: any, res) => {
     try {
-      const inventory = await storage.getInventory(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const inventory = await storage.getInventory(userId);
       
       // Calculate metrics
       let stockAccuracy = 85;
@@ -296,16 +301,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Fix Actions
-  app.get("/api/inventory/fix-actions", async (req, res) => {
+  app.get("/api/inventory/fix-actions", isAuthenticated, async (req: any, res) => {
     try {
-      const inventory = await storage.getInventory(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const inventory = await storage.getInventory(userId);
       const actions = [];
-      
+
       // Find critical stock items
       const criticalItems = inventory
         .filter((item: any) => item.currentStock <= item.reorderPoint && item.currentStock > 0)
         .slice(0, 3);
-      
+
       criticalItems.forEach((item: any) => {
         actions.push({
           priority: item.currentStock <= 5 ? 'high' : 'medium',
@@ -314,7 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           emoji: '📦'
         });
       });
-      
+
       // Add waste reduction action
       actions.push({
         priority: 'medium',
@@ -322,7 +328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         impact: 'Reduce waste by 15-20%',
         emoji: '♻️'
       });
-      
+
       // Add optimization action
       actions.push({
         priority: 'low',
@@ -330,7 +336,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         impact: 'Optimize inventory levels',
         emoji: '📊'
       });
-      
+
       res.json(actions.slice(0, 5));
     } catch (error) {
       console.error("Error generating fix actions:", error);
@@ -339,9 +345,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Suppliers
-  app.get("/api/suppliers", async (req, res) => {
+  app.get("/api/suppliers", isAuthenticated, async (req: any, res) => {
     try {
-      const suppliers = await storage.getSuppliers(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const suppliers = await storage.getSuppliers(userId);
       res.json(suppliers);
     } catch (error) {
       console.error("Error fetching suppliers:", error);
@@ -487,9 +494,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Product routes
-  app.get('/api/products', async (req, res) => {
+  app.get('/api/products', isAuthenticated, async (req: any, res) => {
     try {
-      const products = await storage.getProducts(parseInt(MOCK_USER_ID));
+      const userId = req.user.claims.sub;
+      const products = await storage.getProducts(userId);
       res.json(products);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -497,10 +505,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/products/:id', async (req, res) => {
+  app.get('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
-      const product = await storage.getProduct(parseInt(id), parseInt(MOCK_USER_ID));
+      const product = await storage.getProduct(parseInt(id), userId);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -511,36 +520,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/products', async (req, res) => {
+  app.post('/api/products', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const productData = {
         ...req.body,
-        userId: parseInt(MOCK_USER_ID),
+        userId: userId,
       };
-      
+
       // Check if product with same name already exists
-      const existingProducts = await storage.getProducts(parseInt(MOCK_USER_ID));
+      const existingProducts = await storage.getProducts(userId);
       const duplicate = existingProducts.find(p => p.name.toLowerCase() === productData.name.toLowerCase());
       if (duplicate) {
         return res.status(400).json({ message: "Product with this name already exists" });
       }
-      
+
       const product = await storage.createProduct(productData);
-      
+
       // Create initial inventory for the product
       if (req.body.currentStock !== undefined || req.body.reorderPoint !== undefined) {
         await storage.createInventoryItem({
           productId: product.id,
-          userId: parseInt(MOCK_USER_ID),
+          userId: userId,
           currentStock: req.body.currentStock?.toString() || "0",
           reorderPoint: req.body.reorderPoint?.toString() || "10",
           maxStock: req.body.maxStock?.toString() || "100",
           lastRestocked: new Date(),
-          expirationDate: product.isPerishable && product.shelfLifeDays ? 
+          expirationDate: product.isPerishable && product.shelfLifeDays ?
             new Date(Date.now() + product.shelfLifeDays * 24 * 60 * 60 * 1000) : null,
         });
       }
-      
+
       res.json(product);
     } catch (error) {
       console.error("Error creating product:", error);
@@ -548,19 +558,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/products/:id', async (req, res) => {
+  app.put('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
       const productData = {
         ...req.body,
-        userId: parseInt(MOCK_USER_ID),
+        userId: userId,
       };
-      
-      const updatedProduct = await storage.updateProduct(parseInt(id), productData);
+
+      const updatedProduct = await storage.updateProduct(parseInt(id), productData, userId);
       if (!updatedProduct) {
         return res.status(404).json({ message: "Product not found" });
       }
-      
+
       res.json(updatedProduct);
     } catch (error) {
       console.error("Error updating product:", error);
@@ -568,19 +579,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/products/:id', async (req, res) => {
+  app.delete('/api/products/:id', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { id } = req.params;
-      
+
       // First delete related inventory records
-      await storage.deleteInventoryByProductId(parseInt(id), parseInt(MOCK_USER_ID));
-      
+      await storage.deleteInventoryByProductId(parseInt(id), userId);
+
       // Then delete the product
-      const deleted = await storage.deleteProduct(parseInt(id), parseInt(MOCK_USER_ID));
+      const deleted = await storage.deleteProduct(parseInt(id), userId);
       if (!deleted) {
         return res.status(404).json({ message: "Product not found" });
       }
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -635,9 +647,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI Assistant Routes
-  app.get('/api/ai/recommendations', async (req, res) => {
+  app.get('/api/ai/recommendations', isAuthenticated, async (req: any, res) => {
     try {
-      const recommendations = await aiAssistant.generateProactiveRecommendations(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const recommendations = await aiAssistant.generateProactiveRecommendations(userId);
       res.json(recommendations);
     } catch (error) {
       console.error("Error generating AI recommendations:", error);
@@ -645,10 +658,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/ai/insights/:productId', async (req, res) => {
+  app.get('/api/ai/insights/:productId', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const productId = parseInt(req.params.productId);
-      const insights = await aiAssistant.analyzeInventoryTrends(MOCK_USER_ID, productId);
+      const insights = await aiAssistant.analyzeInventoryTrends(userId, productId);
       res.json(insights);
     } catch (error) {
       console.error("Error analyzing inventory trends:", error);
@@ -656,9 +670,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/ai/report', async (req, res) => {
+  app.get('/api/ai/report', isAuthenticated, async (req: any, res) => {
     try {
-      const report = await aiAssistant.generateInventoryReport(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const report = await aiAssistant.generateInventoryReport(userId);
       res.json({ report });
     } catch (error) {
       console.error("Error generating inventory report:", error);
@@ -666,14 +681,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/ai/optimize-reorder', async (req, res) => {
+  app.post('/api/ai/optimize-reorder', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { productIds } = req.body;
       if (!productIds || !Array.isArray(productIds)) {
         return res.status(400).json({ message: "Product IDs array is required" });
       }
-      
-      const recommendations = await aiAssistant.optimizeReorderQuantities(MOCK_USER_ID, productIds);
+
+      const recommendations = await aiAssistant.optimizeReorderQuantities(userId, productIds);
       res.json(recommendations);
     } catch (error) {
       console.error("Error optimizing reorder quantities:", error);
@@ -682,13 +698,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Feedback endpoint
-  app.post("/api/feedback", async (req, res) => {
+  app.post("/api/feedback", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const validatedData = insertFeedbackSchema.parse({
         ...req.body,
-        userId: MOCK_USER_ID,
+        userId: userId,
       });
-      
+
       const feedback = await storage.createFeedback(validatedData);
       res.json(feedback);
     } catch (error) {
@@ -698,9 +715,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user feedback
-  app.get("/api/feedback", async (req, res) => {
+  app.get("/api/feedback", isAuthenticated, async (req: any, res) => {
     try {
-      const feedback = await storage.getFeedback(MOCK_USER_ID);
+      const userId = req.user.claims.sub;
+      const feedback = await storage.getFeedback(userId);
       res.json(feedback);
     } catch (error) {
       console.error("Error fetching feedback:", error);
@@ -772,9 +790,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Spoilage prediction routes
-  app.get("/api/spoilage/risks", async (req, res) => {
+  app.get("/api/spoilage/risks", isAuthenticated, async (req: any, res) => {
     try {
-      const risks = await storage.getSpoilageRisks(parseInt(MOCK_USER_ID));
+      const userId = req.user.claims.sub;
+      const risks = await storage.getSpoilageRisks(userId);
       res.json(risks);
     } catch (error) {
       console.error("Error fetching spoilage risks:", error);
@@ -782,12 +801,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/spoilage/storage-conditions/:productId", async (req, res) => {
+  app.put("/api/spoilage/storage-conditions/:productId", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { productId } = req.params;
       const { conditions } = req.body;
-      
-      await storage.updateStorageConditions(parseInt(productId), conditions, parseInt(MOCK_USER_ID));
+
+      await storage.updateStorageConditions(parseInt(productId), conditions, userId);
       res.json({ success: true });
     } catch (error) {
       console.error("Error updating storage conditions:", error);
@@ -795,10 +815,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/spoilage/predictions", async (req, res) => {
+  app.get("/api/spoilage/predictions", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { spoilagePredictor } = await import('./spoilage-predictor');
-      const predictions = await spoilagePredictor.generateAdvancedPredictions(parseInt(MOCK_USER_ID));
+      const predictions = await spoilagePredictor.generateAdvancedPredictions(userId);
       res.json(predictions);
     } catch (error) {
       console.error("Error generating spoilage predictions:", error);
@@ -809,8 +830,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize achievements
   app.post("/api/achievements/init", async (req, res) => {
     try {
-      const MOCK_USER_ID = "1";
-      
       // Initialize achievements if not exists
       const existingAchievements = await storage.getAchievements();
       if (existingAchievements.length === 0) {
@@ -892,18 +911,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const achievement of demoAchievements) {
           await db.insert(achievements).values(achievement);
         }
-      }
-
-      // Initialize user stats
-      const userStats = await storage.getUserStats(MOCK_USER_ID);
-      if (!userStats) {
-        await storage.updateUserStats(MOCK_USER_ID, {
-          wasteFreeDays: 3,
-          accuratePredictions: 2,
-          optimalStockDays: 5,
-          currentStreak: 3,
-          longestStreak: 5,
-        });
       }
 
       res.json({ message: "Achievements initialized successfully" });
